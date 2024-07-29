@@ -37,11 +37,13 @@ func (u *UsersRepo) Register(req *ap.UserCreateReq) (*ap.Void, error) {
 		username,
 		email,
 		password,
-		role
-	) VALUES ($1, $2, $3, $4, $5)
+		role,
+		address,
+		phone
+	) VALUES ($1, $2, $3, $4, $5, $6, $7)
 	`
 
-	_, err := u.db.Exec(query, id, req.Username, req.Email, req.Password, req.Role)
+	_, err := u.db.Exec(query, id, req.Username, req.Email, req.Password, req.Role, req.Address, req.Phone)
 
 	if err != nil {
 		log.Println("Error while registering user: ", err)

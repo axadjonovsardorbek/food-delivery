@@ -23,10 +23,10 @@ func main() {
 
 	defer conn.Db.Close()
 
-	prod, err := kafka.NewKafkaProducer([]string{"kafka:9092"})
+	prod, err := kafka.NewKafkaProducer([]string{cf.KAFKA_HOST + cf.KAFKA_PORT})
 	us := service.NewUsersService(conn)
 	kfk := kafka.NewKafkaConsumerManager()
-	broker := []string{"kafka:9092"}
+	broker := []string{cf.KAFKA_HOST + cf.KAFKA_PORT}
 	kfk.RegisterConsumer(broker, "user", "u", kafka.UserCreateHandler(us))
 	
 	if err != nil {
@@ -42,6 +42,6 @@ func main() {
 		slog.Error("Error:", err)
 	}
 
-	
+
 }
 
