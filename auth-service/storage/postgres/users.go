@@ -27,7 +27,7 @@ type UsersRepo struct {
 func NewUsersRepo(db *sql.DB, rdb *redis.Client) *UsersRepo {
 	return &UsersRepo{db: db, rdb: rdb}
 }
-
+  
 func (u *UsersRepo) Register(req *ap.UserCreateReq) (*ap.Void, error) {
 	id := uuid.New().String()
 
@@ -60,28 +60,31 @@ func (u *UsersRepo) Login(req *ap.UserLoginReq) (*ap.TokenRes, error) {
 	var email string
 	var username string
 	var password string
+	var role string
 
 	query := `
 	SELECT 
 		id,
 		username,
 		email,
-		password
+		password,
+		role
 	FROM 
 		users
 	WHERE
-		username = $1
+		email = $1
 	AND 
 		deleted_at = 0
 	`
 
-	row := u.db.QueryRow(query, req.Username)
+	row := u.db.QueryRow(query, req.Email)
 
 	err := row.Scan(
 		&id,
 		&username,
 		&email,
 		&password,
+		&role,
 	)
 
 	if err == sql.ErrNoRows {
@@ -97,7 +100,7 @@ func (u *UsersRepo) Login(req *ap.UserLoginReq) (*ap.TokenRes, error) {
 		return nil, errors.New("invalid username or password")
 	}
 
-	token := t.GenerateJWTToken(id, email, username)
+	token := t.GenerateJWTToken(id, email, username, role)
 	tokens := ap.TokenRes{
 		Token: token.AccessToken,
 		ExpAt: "1 hours",
@@ -217,12 +220,14 @@ func (u *UsersRepo) RefreshToken(req *ap.ById) (*ap.TokenRes, error) {
 	var id string
 	var email string
 	var username string
+	var role string
 
 	query := `
 	SELECT 
 		id,
 		username,
 		email,
+		role
 	FROM 
 		users
 	WHERE
@@ -237,6 +242,7 @@ func (u *UsersRepo) RefreshToken(req *ap.ById) (*ap.TokenRes, error) {
 		&id,
 		&username,
 		&email,
+		&role,
 	)
 
 	if err == sql.ErrNoRows {
@@ -248,7 +254,7 @@ func (u *UsersRepo) RefreshToken(req *ap.ById) (*ap.TokenRes, error) {
 		return nil, err
 	}
 
-	token := t.GenerateJWTToken(id, email, username)
+	token := t.GenerateJWTToken(id, email, username, role)
 	tokens := ap.TokenRes{
 		Token: token.RefreshToken,
 		ExpAt: "24 hours",
@@ -283,14 +289,14 @@ func (u *UsersRepo) ForgotPassword(req *ap.UsersForgotPassword) (*ap.Void, error
 
 func (u *UsersRepo) ResetPassword(req *ap.UsersResetPassword) (*ap.Void, error) {
 	em, err := u.rdb.Get(context.Background(), req.Email).Result()
-	log.Println(req.ResetToken, err)
+
 	if err != nil {
 		return nil, errors.New("invalid code or code expired")
 	}
 	log.Println(em)
 
-	if req.NewPassword == "" || req.NewPassword == "string" {
-		return nil, errors.New("incorrect password")
+	if em != req.ResetToken{
+		return nil, errors.New("invalid code or code expired")
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
@@ -300,7 +306,7 @@ func (u *UsersRepo) ResetPassword(req *ap.UsersResetPassword) (*ap.Void, error) 
 	req.NewPassword = string(hashedPassword)
 
 	query := `update users set password = $1 where email = $2 and deleted_at = 0`
-	_, err = u.db.Exec(query, req.NewPassword, em)
+	_, err = u.db.Exec(query, req.NewPassword, req.Email)
 	log.Println(req.NewPassword)
 	if err != nil {
 		return nil, fmt.Errorf("failed to reset password: %v", err)
@@ -334,3 +340,5 @@ func (u *UsersRepo) ChangePassword(req *ap.UsersChangePassword) (*ap.Void, error
 
 	return nil, nil
 }
+
+func (u *UsersRepo) CheckEmail()

@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/golang-jwt/jwt"
 	_ "github.com/swaggo/swag"
@@ -13,24 +14,39 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const emailRegex = `^[a-zA-Z0-9._]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+
+func isValidEmail(email string) bool {
+	re := regexp.MustCompile(emailRegex)
+	return re.MatchString(email)
+}
+
+
 // Register godoc
 // @Summary Register a new user
 // @Description Register a new user
-// @Tags auth
+// @Tags user
 // @Accept json
 // @Produce json
 // @Param user body ap.UserCreateReq true "User registration request"
 // @Success 201 {object} string "User registered"
 // @Failure 400 {object} string "Invalid request payload"
 // @Failure 500 {object} string "Server error"
-// @Router /register [post]
-func (h *Handler) Register(c *gin.Context) {
+// @Router /user/register [post]
+func (h *Handler) UserRegister(c *gin.Context) {
 	var req ap.UserCreateReq
-
+	
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	if !isValidEmail(req.Email){
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Incorrect email"})
+		return
+	}
+
+	req.Role = "user"
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -54,6 +70,56 @@ func (h *Handler) Register(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "User registered"})
+}
+
+// Register godoc
+// @Summary Register a new courier
+// @Description Register a new courier
+// @Tags courier
+// @Accept json
+// @Produce json
+// @Param user body ap.UserCreateReq true "User registration request"
+// @Success 201 {object} string "Courier registered"
+// @Failure 400 {object} string "Invalid request payload"
+// @Failure 500 {object} string "Server error"
+// @Router /courier/register [post]
+func (h *Handler) CourierRegister(c *gin.Context) {
+	var req ap.UserCreateReq
+
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if !isValidEmail(req.Email){
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Incorrect email"})
+		return
+	}
+
+	req.Role = "courier"
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Server error"})
+		return
+	}
+	req.Password = string(hashedPassword)
+
+	_, err = h.User.Register(context.Background(), &req)
+
+	// input, err := json.Marshal(&req)
+	// if err != nil {
+	// 	c.JSON(500, gin.H{"error": err.Error()})
+	// 	return
+	// }
+	// err = h.Producer.ProduceMessages("user", input)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Courier registered"})
 }
 
 // Login godoc
@@ -307,6 +373,11 @@ func (h *Handler) ResetPassword(c *gin.Context) {
 	var resetCode ap.UsersResetPassword
 	reset_token := c.Query("reset_token")
 	new_password := c.Query("new_password")
+
+
+	if new_password == "" || new_password == "string" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Passwrod is empty"})
+	}
 
 	claims, exists := c.Get("claims")
 	if !exists {

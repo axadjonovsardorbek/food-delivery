@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS orders (
 
 -- Order Items Table
 CREATE TABLE IF NOT EXISTS order_items (
-    id UUUID PRIMARY KEY,
+    id UUID PRIMARY KEY,
     order_id UUID REFERENCES orders(id),
     product_id UUID REFERENCES products(id),
     quantity INTEGER NOT NULL,

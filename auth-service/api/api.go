@@ -20,7 +20,9 @@ func NewApi(h *handler.Handler) *gin.Engine {
 
 	router.GET("/api/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	router.POST("/register", h.Register)
+	router.POST("/user/register", h.UserRegister)
+	router.POST("/courier/register", h.CourierRegister)
+
 	router.POST("/login", h.Login)
 
 	protected := router.Group("/", middleware.JWTMiddleware())

@@ -8,9 +8,13 @@ definitions:
     type: object
   auth.UserCreateReq:
     properties:
+      address:
+        type: string
       email:
         type: string
       password:
+        type: string
+      phone:
         type: string
       role:
         type: string
@@ -19,9 +23,9 @@ definitions:
     type: object
   auth.UserLoginReq:
     properties:
-      password:
+      email:
         type: string
-      username:
+      password:
         type: string
     type: object
   auth.UserRes:
@@ -29,6 +33,8 @@ definitions:
       created_at:
         type: string
       id:
+        type: string
+      phone:
         type: string
       role:
         type: string
@@ -81,6 +87,36 @@ paths:
       summary: ChangePassword
       tags:
       - user
+  /courier/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new courier
+      parameters:
+      - description: User registration request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/auth.UserCreateReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Courier registered
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      summary: Register a new courier
+      tags:
+      - courier
   /forgot-password:
     post:
       consumes:
@@ -268,36 +304,6 @@ paths:
       summary: Get token
       tags:
       - user
-  /register:
-    post:
-      consumes:
-      - application/json
-      description: Register a new user
-      parameters:
-      - description: User registration request
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/auth.UserCreateReq'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: User registered
-          schema:
-            type: string
-        "400":
-          description: Invalid request payload
-          schema:
-            type: string
-        "500":
-          description: Server error
-          schema:
-            type: string
-      summary: Register a new user
-      tags:
-      - auth
   /reset-password:
     post:
       consumes:
@@ -330,6 +336,36 @@ paths:
       security:
       - BearerAuth: []
       summary: Reset user password
+      tags:
+      - user
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      parameters:
+      - description: User registration request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/auth.UserCreateReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User registered
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      summary: Register a new user
       tags:
       - user
 securityDefinitions:
