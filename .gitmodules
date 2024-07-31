@@ -1,0 +1,3 @@
+[submodule "order-service/delivery-submodule"]
+	path = order-service/delivery-submodule
+	url = git@github.com:axadjonovsardorbek/delivery-submodule.git

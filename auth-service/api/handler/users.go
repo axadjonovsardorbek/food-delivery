@@ -213,6 +213,12 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 	id := claims.(jwt.MapClaims)["user_id"].(string)
 	name := c.Query("username")
 	email := c.Query("email")
+
+	if !isValidEmail(email){
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Incorrect email"})
+		return
+	}
+
 	req.Id = id
 	req.Username = name
 	req.Email = email

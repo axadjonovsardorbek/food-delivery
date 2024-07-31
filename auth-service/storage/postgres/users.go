@@ -117,6 +117,7 @@ func (u *UsersRepo) Profile(req *ap.ById) (*ap.UserRes, error) {
 		id,
 		username,
 		role,
+		phone,
 		created_at
 	FROM 	
 		users
@@ -131,6 +132,7 @@ func (u *UsersRepo) Profile(req *ap.ById) (*ap.UserRes, error) {
 		&user.Id,
 		&user.Username,
 		&user.Role,
+		&user.Phone,
 		&user.CreatedAt,
 	)
 
