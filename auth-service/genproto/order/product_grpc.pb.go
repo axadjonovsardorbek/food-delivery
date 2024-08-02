@@ -32,7 +32,7 @@ const (
 type ProductServiceClient interface {
 	Create(ctx context.Context, in *ProductCreateReq, opts ...grpc.CallOption) (*Void, error)
 	GetById(ctx context.Context, in *ById, opts ...grpc.CallOption) (*ProductGetByIdRes, error)
-	GetAll(ctx context.Context, in *Filter, opts ...grpc.CallOption) (*ProductGetAllRes, error)
+	GetAll(ctx context.Context, in *ProductGetAllReq, opts ...grpc.CallOption) (*ProductGetAllRes, error)
 	Update(ctx context.Context, in *ProductUpdateReq, opts ...grpc.CallOption) (*Void, error)
 	Delete(ctx context.Context, in *ById, opts ...grpc.CallOption) (*Void, error)
 }
@@ -63,7 +63,7 @@ func (c *productServiceClient) GetById(ctx context.Context, in *ById, opts ...gr
 	return out, nil
 }
 
-func (c *productServiceClient) GetAll(ctx context.Context, in *Filter, opts ...grpc.CallOption) (*ProductGetAllRes, error) {
+func (c *productServiceClient) GetAll(ctx context.Context, in *ProductGetAllReq, opts ...grpc.CallOption) (*ProductGetAllRes, error) {
 	out := new(ProductGetAllRes)
 	err := c.cc.Invoke(ctx, ProductService_GetAll_FullMethodName, in, out, opts...)
 	if err != nil {
@@ -96,7 +96,7 @@ func (c *productServiceClient) Delete(ctx context.Context, in *ById, opts ...grp
 type ProductServiceServer interface {
 	Create(context.Context, *ProductCreateReq) (*Void, error)
 	GetById(context.Context, *ById) (*ProductGetByIdRes, error)
-	GetAll(context.Context, *Filter) (*ProductGetAllRes, error)
+	GetAll(context.Context, *ProductGetAllReq) (*ProductGetAllRes, error)
 	Update(context.Context, *ProductUpdateReq) (*Void, error)
 	Delete(context.Context, *ById) (*Void, error)
 	mustEmbedUnimplementedProductServiceServer()
@@ -112,7 +112,7 @@ func (UnimplementedProductServiceServer) Create(context.Context, *ProductCreateR
 func (UnimplementedProductServiceServer) GetById(context.Context, *ById) (*ProductGetByIdRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetById not implemented")
 }
-func (UnimplementedProductServiceServer) GetAll(context.Context, *Filter) (*ProductGetAllRes, error) {
+func (UnimplementedProductServiceServer) GetAll(context.Context, *ProductGetAllReq) (*ProductGetAllRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedProductServiceServer) Update(context.Context, *ProductUpdateReq) (*Void, error) {
@@ -171,7 +171,7 @@ func _ProductService_GetById_Handler(srv interface{}, ctx context.Context, dec f
 }
 
 func _ProductService_GetAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Filter)
+	in := new(ProductGetAllReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -183,7 +183,7 @@ func _ProductService_GetAll_Handler(srv interface{}, ctx context.Context, dec fu
 		FullMethod: ProductService_GetAll_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).GetAll(ctx, req.(*Filter))
+		return srv.(ProductServiceServer).GetAll(ctx, req.(*ProductGetAllReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }

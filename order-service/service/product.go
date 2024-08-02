@@ -21,7 +21,7 @@ func (s *ProductService) Create(ctx context.Context, req *op.ProductCreateReq) (
 func (s *ProductService) GetById(ctx context.Context, req *op.ById) (*op.ProductGetByIdRes, error) {
 	return s.storage.ProductS.GetById(req)
 }
-func (s *ProductService) GetAll(ctx context.Context, req *op.Filter) (*op.ProductGetAllRes, error) {
+func (s *ProductService) GetAll(ctx context.Context, req *op.ProductGetAllReq) (*op.ProductGetAllRes, error) {
 	return s.storage.ProductS.GetAll(req)
 }
 func (s *ProductService) Update(ctx context.Context, req *op.ProductUpdateReq) (*op.Void, error) {

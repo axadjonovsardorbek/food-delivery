@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 
 	op "order/genproto/order"
 
@@ -18,15 +20,6 @@ type ProductRepo struct {
 func NewProductRepo(db *sql.DB) *ProductRepo {
 	return &ProductRepo{db: db}
 }
-
-// id UUID PRIMARY KEY,
-// name VARCHAR(255) NOT NULL,
-// description TEXT,
-// price INTEGER NOT NULL,
-// image_url VARCHAR(255),
-// created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-// updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-// deleted_at BIGINT DEFAULT 0
 
 func (r *ProductRepo) Create(req *op.ProductCreateReq) (*op.Void, error) {
 	id := uuid.New().String()
@@ -96,7 +89,7 @@ func (r *ProductRepo) GetById(req *op.ById) (*op.ProductGetByIdRes, error) {
 
 	return &product, nil
 }
-func (r *ProductRepo) GetAll(req *op.Filter) (*op.ProductGetAllRes, error) {
+func (r *ProductRepo) GetAll(req *op.ProductGetAllReq) (*op.ProductGetAllRes, error) {
 	products := op.ProductGetAllRes{}
 
 	query := `
@@ -113,29 +106,22 @@ func (r *ProductRepo) GetAll(req *op.Filter) (*op.ProductGetAllRes, error) {
 	`
 
 	var args []interface{}
-	// var conditions []string
+	var conditions []string
 
-	// if req.MemoryId != "" && req.MemoryId != "string" {
-	// 	conditions = append(conditions, " memory_id = $"+strconv.Itoa(len(args)+1))
-	// 	args = append(args, req.MemoryId)
-	// }
-	// if req.UserId != "" && req.UserId != "string" {
-	// 	conditions = append(conditions, " user_id = $"+strconv.Itoa(len(args)+1))
-	// 	args = append(args, req.UserId)
-	// }
+	if req.Name != "" && req.Name != "string" {
+		conditions = append(conditions, " LOWER(name) LIKE LOWER($"+strconv.Itoa(len(args)+1)+")")
+		args = append(args, req.Name)
+	}
+	if req.Price > 0 {
+		conditions = append(conditions, " price <= $"+strconv.Itoa(len(args)+1))
+		args = append(args, req.Price)
+	}
 
-	// if len(conditions) > 0 {
-	// 	query += " AND " + strings.Join(conditions, " AND ")
-	// }
+	if len(conditions) > 0 {
+		query += " AND " + strings.Join(conditions, " AND ")
+	}
 
-	// var limit int32
-	// var offset int32
-	// var count int32
-
-	// limit = 10
-	// offset = req.Filter.Page * limit
-
-	args = append(args, req.Limit, req.Offset)
+	args = append(args, req.Filter.Limit, req.Filter.Offset)
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)-1, len(args))
 
 	rows, err := r.db.Query(query, args...)
@@ -174,6 +160,51 @@ func (r *ProductRepo) GetAll(req *op.Filter) (*op.ProductGetAllRes, error) {
 	return &products, nil
 }
 func (r *ProductRepo) Update(req *op.ProductUpdateReq) (*op.Void, error) {
+	query := `
+	UPDATE
+		products
+	SET 
+	`
+
+	var conditions []string
+	var args []interface{}
+
+	if req.Product.Name != "" && req.Product.Name != "string" {
+		conditions = append(conditions, " name = $"+strconv.Itoa(len(args)+1))
+		args = append(args, req.Product.Name)
+	}
+	if req.Product.Description != "" && req.Product.Description != "string" {
+		conditions = append(conditions, " description = $"+strconv.Itoa(len(args)+1))
+		args = append(args, req.Product.Description)
+	}
+	if req.Product.Price > 0 {
+		conditions = append(conditions, " price = $"+strconv.Itoa(len(args)+1))
+		args = append(args, req.Product.Price)
+	}
+	if req.Product.ImageUrl != "" && req.Product.ImageUrl != "string" {
+		conditions = append(conditions, " image_url = $"+strconv.Itoa(len(args)+1))
+		args = append(args, req.Product.ImageUrl)
+	}
+
+	if len(conditions) == 0 {
+		return nil, errors.New("nothing to update")
+	}
+
+	conditions = append(conditions, " updated_at = now()")
+	query += strings.Join(conditions, ", ")
+	query += " WHERE id = $" + strconv.Itoa(len(args)+1) + " AND deleted_at = 0 "
+
+	args = append(args, req.Id)
+
+	_, err := r.db.Exec(query, args...)
+
+	if err != nil {
+		log.Println("Error while updating product: ", err)
+		return nil, err
+	}
+
+	log.Println("Successfully updated product")
+
 	return nil, nil
 }
 func (r *ProductRepo) Delete(req *op.ById) (*op.Void, error) {
