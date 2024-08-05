@@ -103,13 +103,29 @@ func (r *CartRepo) GetAll(req *op.CartGetAllReq) (*op.CartGetAllRes, error) {
 		carts
 	WHERE 
 		deleted_at = 0	
-	AND 
-		user_id = $1
 	`
 
 	var args []interface{}
+	var conditions []string
 
-	args = append(args, req.Filter.Limit, req.Filter.Offset)
+	if req.UserId != "" && req.UserId != "string" {
+		conditions = append(conditions, " user_id = $"+strconv.Itoa(len(args)+1))
+		args = append(args, req.UserId)
+	}
+
+	if len(conditions) > 0 {
+		query += " AND " + strings.Join(conditions, " AND ")
+	}
+
+	var limit int32
+	var offset int32
+
+	limit = 10
+	offset = (req.Filter.Page - 1) * limit
+
+	fmt.Printf("%t", limit)
+
+	args = append(args, limit, offset)
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)-1, len(args))
 
 	rows, err := r.db.Query(query, args...)

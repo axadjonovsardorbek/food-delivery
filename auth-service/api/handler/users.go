@@ -21,6 +21,56 @@ func isValidEmail(email string) bool {
 	return re.MatchString(email)
 }
 
+// Register godoc
+// @Summary Register a new admin
+// @Description Register a new admin
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param user body ap.UserCreateReq true "User registration request"
+// @Success 201 {object} string "Admin registered"
+// @Failure 400 {object} string "Invalid request payload"
+// @Failure 500 {object} string "Server error"
+// @Router /admin/register [post]
+func (h *Handler) AdminRegister(c *gin.Context) {
+	var req ap.UserCreateReq
+	
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if !isValidEmail(req.Email){
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Incorrect email"})
+		return
+	}
+
+	req.Role = "admin"
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Server error"})
+		return
+	}
+	req.Password = string(hashedPassword)
+
+	_, err = h.User.Register(context.Background(), &req)
+
+	// input, err := json.Marshal(&req)
+	// if err != nil {
+	// 	c.JSON(500, gin.H{"error": err.Error()})
+	// 	return
+	// }
+	// err = h.Producer.ProduceMessages("user", input)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Admin registered"})
+}
+
 
 // Register godoc
 // @Summary Register a new user

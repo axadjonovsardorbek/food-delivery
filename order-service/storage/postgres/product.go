@@ -121,7 +121,13 @@ func (r *ProductRepo) GetAll(req *op.ProductGetAllReq) (*op.ProductGetAllRes, er
 		query += " AND " + strings.Join(conditions, " AND ")
 	}
 
-	args = append(args, req.Filter.Limit, req.Filter.Offset)
+	var limit, offset int32
+
+	limit = 10
+	offset = (req.Filter.Page - 1) * limit
+
+	args = append(args, limit, offset)
+
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)-1, len(args))
 
 	rows, err := r.db.Query(query, args...)

@@ -1,0 +1,423 @@
+definitions:
+  order.CartCreateReq:
+    properties:
+      options:
+        type: string
+      product_id:
+        type: string
+      quantity:
+        type: integer
+      user_id:
+        type: string
+    type: object
+  order.CartGetAllRes:
+    properties:
+      carts:
+        items:
+          $ref: '#/definitions/order.CartRes'
+        type: array
+    type: object
+  order.CartGetByIdRes:
+    properties:
+      cart:
+        $ref: '#/definitions/order.CartRes'
+    type: object
+  order.CartRes:
+    properties:
+      id:
+        type: string
+      options:
+        type: string
+      product_id:
+        type: string
+      quantity:
+        type: integer
+      user_id:
+        type: string
+    type: object
+  order.ProductCreateReq:
+    properties:
+      description:
+        type: string
+      image_url:
+        type: string
+      name:
+        type: string
+      price:
+        type: integer
+    type: object
+  order.ProductGetAllRes:
+    properties:
+      products:
+        items:
+          $ref: '#/definitions/order.ProductRes'
+        type: array
+    type: object
+  order.ProductGetByIdRes:
+    properties:
+      product:
+        $ref: '#/definitions/order.ProductRes'
+    type: object
+  order.ProductRes:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      image_url:
+        type: string
+      name:
+        type: string
+      price:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /cart:
+    post:
+      consumes:
+      - application/json
+      description: Create a new cart
+      parameters:
+      - description: Cart data
+        in: body
+        name: event
+        required: true
+        schema:
+          $ref: '#/definitions/order.CartCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart created
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create cart
+      tags:
+      - cart
+  /cart/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a cart by ID
+      parameters:
+      - description: Cart ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart deleted
+          schema:
+            type: string
+        "400":
+          description: Invalid event ID
+          schema:
+            type: string
+        "404":
+          description: Cart not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete cart
+      tags:
+      - cart
+    get:
+      consumes:
+      - application/json
+      description: Get a cart
+      parameters:
+      - description: Cart ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/order.CartGetByIdRes'
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get cart
+      tags:
+      - cart
+    put:
+      consumes:
+      - application/json
+      description: Update an existing cart
+      parameters:
+      - description: Cart ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Cart data
+        in: body
+        name: event
+        required: true
+        schema:
+          $ref: '#/definitions/order.CartCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart updated
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "404":
+          description: Cart not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update cart
+      tags:
+      - cart
+  /cart/all:
+    get:
+      consumes:
+      - application/json
+      description: Get all carts
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/order.CartGetAllRes'
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all carts
+      tags:
+      - cart
+  /product:
+    post:
+      consumes:
+      - application/json
+      description: Create a new product
+      parameters:
+      - description: Product data
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/order.ProductCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product created
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create product
+      tags:
+      - product
+  /product/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a product by ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product deleted
+          schema:
+            type: string
+        "400":
+          description: Invalid product ID
+          schema:
+            type: string
+        "404":
+          description: Product not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete product
+      tags:
+      - product
+    get:
+      consumes:
+      - application/json
+      description: Get a product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/order.ProductGetByIdRes'
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get product
+      tags:
+      - product
+    put:
+      consumes:
+      - application/json
+      description: Update an existing product
+      parameters:
+      - description: Id
+        in: query
+        name: id
+        type: string
+      - description: Product data
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/order.ProductCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product updated
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "404":
+          description: Product not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update product
+      tags:
+      - product
+  /product/all:
+    get:
+      consumes:
+      - application/json
+      description: Get all product
+      parameters:
+      - description: Name
+        in: query
+        name: name
+        type: integer
+      - description: Price
+        in: query
+        name: price
+        type: integer
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/order.ProductGetAllRes'
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all product
+      tags:
+      - product
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

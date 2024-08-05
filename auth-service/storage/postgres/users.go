@@ -343,4 +343,4 @@ func (u *UsersRepo) ChangePassword(req *ap.UsersChangePassword) (*ap.Void, error
 	return nil, nil
 }
 
-func (u *UsersRepo) CheckEmail()
+// func (u *UsersRepo) CheckEmail()

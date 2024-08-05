@@ -20,10 +20,13 @@ func NewApi(h *handler.Handler) *gin.Engine {
 
 	router.GET("/api/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
+	router.POST("/login", h.Login)
+	router.POST("/admin/register", h.AdminRegister)
 	router.POST("/user/register", h.UserRegister)
 	router.POST("/courier/register", h.CourierRegister)
+	router.POST("/reset-password", h.ResetPassword)
+	router.POST("/forgot-password", h.ForgotPassword)
 
-	router.POST("/login", h.Login)
 
 	protected := router.Group("/", middleware.JWTMiddleware())
 	protected.GET("/profile", h.Profile)
@@ -31,8 +34,6 @@ func NewApi(h *handler.Handler) *gin.Engine {
 	protected.DELETE("/profile/delete", h.DeleteProfile)
 	protected.PUT("/profile/update", h.UpdateProfile)
 	protected.PUT("/change-password", h.ChangePassword)
-	protected.POST("/forgot-password", h.ForgotPassword)
-	protected.POST("/reset-password", h.ResetPassword)
 
 	return router
 }

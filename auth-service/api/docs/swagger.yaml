@@ -49,6 +49,36 @@ definitions:
 info:
   contact: {}
 paths:
+  /admin/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new admin
+      parameters:
+      - description: User registration request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/auth.UserCreateReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Admin registered
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      summary: Register a new admin
+      tags:
+      - admin
   /change-password:
     put:
       consumes:
