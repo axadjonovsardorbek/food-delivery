@@ -2,11 +2,11 @@ package main
 
 import (
 	"log"
+	"net"
 	cf "order/config"
 	op "order/genproto/order"
-	"order/storage/postgres"
 	"order/service"
-	"net"
+	"order/storage/postgres"
 
 	"google.golang.org/grpc"
 )
@@ -30,8 +30,9 @@ func main() {
 
 	op.RegisterProductServiceServer(s, service.NewProductService(db))
 	op.RegisterCartServiceServer(s, service.NewCartService(db))
-	// op.RegisterMemoriesServiceServer(s, service.NewMemoriesService(db))
-	// op.RegisterSharedMemoriesServiceServer(s, service.NewSharedMemoriesService(db))
+	op.RegisterCartItemServiceServer(s, service.NewCartItemService(db))
+	op.RegisterOrderServiceServer(s, service.NewOrderService(db))
+	op.RegisterOrderItemServiceServer(s, service.NewOrderItemService(db))
 
 	log.Printf("server listening at %v", listener.Addr())
 	if err := s.Serve(listener); err != nil {

@@ -2,18 +2,19 @@ package clients
 
 import (
 	"gateway/config"
-	cp "gateway/genproto/order"
+	cp "gateway/genproto/courier"
+	op "gateway/genproto/order"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 type GrpcClients struct {
-	Product          cp.ProductServiceClient
-	Cart           cp.CartServiceClient
-	// SharedMemory    cp.SharedMemoriesServiceClient
-	// Comment         cp.CommentsServiceClient
-	// Milestone       cp.MilestonesServiceClient
+	Product      op.ProductServiceClient
+	Cart         op.CartServiceClient
+	CartItem     op.CartItemServiceClient
+	Task         cp.TaskServiceClient
+	Notification cp.NotificationServiceClient
 	// CustomEvent     cp.CustomEventsServiceClient
 	// PersonalEvent   cp.PersonalEventsServiceClient
 	// HistoricalEvent cp.HistoricalEventsServiceClient
@@ -26,18 +27,18 @@ func NewGrpcClients(cfg *config.Config) (*GrpcClients, error) {
 		return nil, err
 	}
 
-	// connT, err := grpc.NewClient(cfg.TIMELINE_HOST+cfg.TIMELINE_PORT,
-	// 	grpc.WithTransportCredentials(insecure.NewCredentials()))
-	// if err != nil {
-	// 	return nil, err
-	// }
+	connC, err := grpc.NewClient(cfg.COURIER_HOST+cfg.COURIER_PORT,
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
 
 	return &GrpcClients{
-		Product:          cp.NewProductServiceClient(connO),
-		Cart:           cp.NewCartServiceClient(connO),
-		// SharedMemory:    cp.NewSharedMemoriesServiceClient(connM),
-		// Comment:         cp.NewCommentsServiceClient(connM),
-		// Milestone:       cp.NewMilestonesServiceClient(connT),
+		Product:      op.NewProductServiceClient(connO),
+		Cart:         op.NewCartServiceClient(connO),
+		CartItem:     op.NewCartItemServiceClient(connO),
+		Task:         cp.NewTaskServiceClient(connC),
+		Notification: cp.NewNotificationServiceClient(connC),
 		// CustomEvent:     cp.NewCustomEventsServiceClient(connT),
 		// PersonalEvent:   cp.NewPersonalEventsServiceClient(connT),
 		// HistoricalEvent: cp.NewHistoricalEventsServiceClient(connT),

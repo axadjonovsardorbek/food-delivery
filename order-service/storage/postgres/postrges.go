@@ -10,9 +10,12 @@ import (
 )
 
 type Storage struct {
-	Db       *sql.DB
-	ProductS storage.ProductI
-	CartS    storage.CartI
+	Db         *sql.DB
+	ProductS   storage.ProductI
+	CartS      storage.CartI
+	CartItemS  storage.CartItemI
+	OrderS     storage.OrderI
+	OrderItemS storage.OrderItemI
 }
 
 func NewPostgresStorage(config config.Config) (*Storage, error) {
@@ -30,14 +33,16 @@ func NewPostgresStorage(config config.Config) (*Storage, error) {
 
 	product := NewProductRepo(db)
 	cart := NewCartRepo(db)
-	// comment := NewCommentsRepo(db)
-	// shared := NewSharedMemoriesRepo(db)
+	cart_item := NewCartItemRepo(db)
+	order := NewOrderRepo(db)
+	order_item := NewOrderItemRepo(db)
 
 	return &Storage{
-		Db:       db,
-		ProductS: product,
-		CartS:    cart,
-		// SharedMemoryS: shared,
-		// CommentS:      comment,
+		Db:         db,
+		ProductS:   product,
+		CartS:      cart,
+		CartItemS:  cart_item,
+		OrderS:     order,
+		OrderItemS: order_item,
 	}, nil
 }

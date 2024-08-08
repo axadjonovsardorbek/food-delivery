@@ -11,10 +11,10 @@ import (
 type Config struct {
 	GATEWAY_PORT string
 	ORDER_PORT string
-	// TIMELINE_PORT string
+	COURIER_PORT string
 
 	ORDER_HOST string
-	// TIMELINE_HOST string
+	COURIER_HOST string
 }
 
 func Load() Config {
@@ -26,9 +26,9 @@ func Load() Config {
 
 	config.GATEWAY_PORT = cast.ToString(coalesce("GATEWAY_PORT", ":8010"))
 	config.ORDER_PORT = cast.ToString(coalesce("ORDER_PORT", ":50060"))
-	// config.TIMELINE_PORT = cast.ToString(coalesce("TIMELINE_PORT", ":50052"))
+	config.COURIER_PORT = cast.ToString(coalesce("COURIER_PORT", ":50061"))
 	config.ORDER_HOST = cast.ToString(coalesce("ORDER_HOST", "localhost"))
-	// config.TIMELINE_HOST = cast.ToString(coalesce("TIMELINE_HOST", "timeline-service"))
+	config.COURIER_HOST = cast.ToString(coalesce("COURIER_HOST", "localhost"))
 
 	return config
 }

@@ -17,7 +17,6 @@ import (
 // @Tags cart
 // @Accept json
 // @Produce json
-// @Param event body cp.CartCreateReq true "Cart data"
 // @Success 200 {object} string "Cart created"
 // @Failure 400 {object} string "Invalid request payload"
 // @Failure 500 {object} string "Server error"
@@ -39,11 +38,6 @@ func (h *Handler) CartCreate(c *gin.Context) {
 	}
 
 	var req cp.CartCreateReq
-
-	if err := c.BindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
-		return
-	}
 
 	req.UserId = id
 
@@ -160,8 +154,6 @@ func (h *Handler) CartGetAll(c *gin.Context) {
 // @Tags cart
 // @Accept json
 // @Produce json
-// @Param id path string true "Cart ID"
-// @Param event body cp.CartCreateReq true "Cart data"
 // @Success 200 {object} string "Cart updated"
 // @Failure 400 {object} string "Invalid request payload"
 // @Failure 404 {object} string "Cart not found"
@@ -182,25 +174,36 @@ func (h *Handler) CartUpdate(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "This page forbidden for you"})
 		return
 	}
-	
-	req := cp.CartCreateReq{}
-	id := c.Param("id")
 
-	if err := c.BindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+	cart_id, err := h.srvs.CartItem.GetCartId(context.Background(), &cp.ById{Id: user_id})
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "users cart not found"})
+		log.Println("error: ", err)
 		return
 	}
 
-	req.UserId = user_id
-
-	_, err := h.srvs.Cart.Update(context.Background(), &cp.CartUpdateReq{
-		Id: id,
-		Cart: &req,
+	amount, err := h.srvs.CartItem.GetTotalAmount(context.Background(), &cp.GetTotalAmountReq{
+		UserId: user_id,
+		CartId: cart_id.Id,
 	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't get price", "details": err.Error()})
+		return
+	}
+
+	_, err = h.srvs.Cart.Update(context.Background(), &cp.CartUpdateReq{
+		Id: cart_id.Id,
+		UserId: user_id,
+		TotalAmount: amount.TotalAmount,
+	})
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't update cart", "details": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Cart updated"})
 }
 
@@ -210,7 +213,6 @@ func (h *Handler) CartUpdate(c *gin.Context) {
 // @Tags cart
 // @Accept json
 // @Produce json
-// @Param id path string true "Cart ID"
 // @Success 200 {object} string "Cart deleted"
 // @Failure 400 {object} string "Invalid event ID"
 // @Failure 404 {object} string "Cart not found"
@@ -225,17 +227,37 @@ func (h *Handler) CartDelete(c *gin.Context) {
 	}
 
 	role := claims.(jwt.MapClaims)["role"].(string)
+	user_id := claims.(jwt.MapClaims)["user_id"].(string)
 
 	if role != "user"{
 		c.JSON(http.StatusForbidden, gin.H{"error": "This page forbidden for you"})
 		return
 	}
 
-	id := &cp.ById{Id: c.Param("id")}
-	_, err := h.srvs.Cart.Delete(context.Background(), id)
+	cart_id, err := h.srvs.CartItem.GetCartId(context.Background(), &cp.ById{Id: user_id})
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "users cart not found"})
+		log.Println("error: ", err)
+		return
+	}
+
+	_, err = h.srvs.Cart.Delete(context.Background(), cart_id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't delete cart", "details": err.Error()})
 		return
 	}
+
+	_, err = h.srvs.Cart.Update(context.Background(), &cp.CartUpdateReq{
+		Id: cart_id.Id,
+		UserId: user_id,
+		TotalAmount: 0,
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't update cart", "details": err.Error()})
+		return
+	}
+	
 	c.JSON(http.StatusOK, gin.H{"message": "Cart deleted"})
 }

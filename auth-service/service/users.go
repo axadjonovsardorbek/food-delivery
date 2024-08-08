@@ -50,3 +50,7 @@ func (u *UsersService) ResetPassword(ctx context.Context, req *ap.UsersResetPass
 func (u *UsersService) ChangePassword(ctx context.Context, req *ap.UsersChangePassword) (*ap.Void, error) {
 	return u.storage.UserS.ChangePassword(req)
 }
+
+func (u *UsersService) CheckEmail(ctx context.Context, req *ap.CheckEmailReq) (*ap.ById, error){
+	return u.storage.UserS.CheckEmail(req)
+}

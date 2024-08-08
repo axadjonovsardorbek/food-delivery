@@ -1,13 +1,74 @@
 definitions:
-  order.CartCreateReq:
+  courier.NotificationCreateReq:
     properties:
-      options:
+      message:
         type: string
-      product_id:
-        type: string
-      quantity:
-        type: integer
       user_id:
+        type: string
+    type: object
+  courier.NotificationGetAllRes:
+    properties:
+      notifications:
+        items:
+          $ref: '#/definitions/courier.NotificationRes'
+        type: array
+    type: object
+  courier.NotificationGetByIdRes:
+    properties:
+      notification:
+        $ref: '#/definitions/courier.NotificationRes'
+    type: object
+  courier.NotificationRes:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      is_read:
+        type: string
+      message:
+        type: string
+      user_id:
+        type: string
+    type: object
+  courier.TaskCreateReq:
+    properties:
+      assigned_to:
+        type: string
+      description:
+        type: string
+      due_date:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+    type: object
+  courier.TaskGetAllRes:
+    properties:
+      tasks:
+        items:
+          $ref: '#/definitions/courier.TaskRes'
+        type: array
+    type: object
+  courier.TaskGetByIdRes:
+    properties:
+      task:
+        $ref: '#/definitions/courier.TaskRes'
+    type: object
+  courier.TaskRes:
+    properties:
+      assigned_to:
+        type: string
+      description:
+        type: string
+      due_date:
+        type: string
+      id:
+        type: string
+      status:
+        type: string
+      title:
         type: string
     type: object
   order.CartGetAllRes:
@@ -22,15 +83,47 @@ definitions:
       cart:
         $ref: '#/definitions/order.CartRes'
     type: object
-  order.CartRes:
+  order.CartItemCreateReq:
     properties:
-      id:
-        type: string
-      options:
+      cart_id:
         type: string
       product_id:
         type: string
       quantity:
+        type: integer
+      user_id:
+        type: string
+    type: object
+  order.CartItemGetAllRes:
+    properties:
+      cart_items:
+        items:
+          $ref: '#/definitions/order.CartItemRes'
+        type: array
+    type: object
+  order.CartItemGetByIdRes:
+    properties:
+      cart_item:
+        $ref: '#/definitions/order.CartItemRes'
+    type: object
+  order.CartItemRes:
+    properties:
+      cart_id:
+        type: string
+      id:
+        type: string
+      product_id:
+        type: string
+      quantity:
+        type: integer
+      user_id:
+        type: string
+    type: object
+  order.CartRes:
+    properties:
+      id:
+        type: string
+      total_amount:
         type: integer
       user_id:
         type: string
@@ -79,13 +172,6 @@ paths:
       consumes:
       - application/json
       description: Create a new cart
-      parameters:
-      - description: Cart data
-        in: body
-        name: event
-        required: true
-        schema:
-          $ref: '#/definitions/order.CartCreateReq'
       produces:
       - application/json
       responses:
@@ -111,12 +197,6 @@ paths:
       consumes:
       - application/json
       description: Delete a cart by ID
-      parameters:
-      - description: Cart ID
-        in: path
-        name: id
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -175,18 +255,6 @@ paths:
       consumes:
       - application/json
       description: Update an existing cart
-      parameters:
-      - description: Cart ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Cart data
-        in: body
-        name: event
-        required: true
-        schema:
-          $ref: '#/definitions/order.CartCreateReq'
       produces:
       - application/json
       responses:
@@ -241,6 +309,334 @@ paths:
       summary: Get all carts
       tags:
       - cart
+  /cart_item:
+    post:
+      consumes:
+      - application/json
+      description: Create a new cart
+      parameters:
+      - description: Cart data
+        in: body
+        name: event
+        required: true
+        schema:
+          $ref: '#/definitions/order.CartItemCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart item created
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create cart
+      tags:
+      - cart item
+  /cart_item/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a cart by ID
+      parameters:
+      - description: Cart ID
+        in: query
+        name: id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart deleted
+          schema:
+            type: string
+        "400":
+          description: Invalid event ID
+          schema:
+            type: string
+        "404":
+          description: Cart not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete cart
+      tags:
+      - cart item
+    get:
+      consumes:
+      - application/json
+      description: Get a cart
+      parameters:
+      - description: Cart ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/order.CartItemGetByIdRes'
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get cart
+      tags:
+      - cart item
+    put:
+      consumes:
+      - application/json
+      description: Update an existing cart
+      parameters:
+      - description: Cart ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Quantity
+        in: query
+        name: quantity
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cart updated
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "404":
+          description: Cart not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update cart
+      tags:
+      - cart item
+  /cart_item/all:
+    get:
+      consumes:
+      - application/json
+      description: Get all carts
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/order.CartItemGetAllRes'
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all carts
+      tags:
+      - cart item
+  /notification:
+    post:
+      consumes:
+      - application/json
+      description: Create a new notification
+      parameters:
+      - description: Notification data
+        in: body
+        name: memory
+        required: true
+        schema:
+          $ref: '#/definitions/courier.NotificationCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Notification created
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create notification
+      tags:
+      - notification
+  /notification/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a notification by ID
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Notification deleted
+          schema:
+            type: string
+        "400":
+          description: Invalid notification ID
+          schema:
+            type: string
+        "404":
+          description: Notification not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete notification
+      tags:
+      - notification
+    get:
+      consumes:
+      - application/json
+      description: Get a notification
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/courier.NotificationGetByIdRes'
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get notification
+      tags:
+      - notification
+    put:
+      consumes:
+      - application/json
+      description: Update an existing notification
+      parameters:
+      - description: Id
+        in: query
+        name: id
+        type: string
+      - description: IsRead
+        in: query
+        name: is_read
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Notification updated
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "404":
+          description: Notification not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update notification
+      tags:
+      - notification
+  /notification/all:
+    get:
+      consumes:
+      - application/json
+      description: Get all notification
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/courier.NotificationGetAllRes'
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all notification
+      tags:
+      - notification
   /product:
     post:
       consumes:
@@ -415,6 +811,174 @@ paths:
       summary: Get all product
       tags:
       - product
+  /task:
+    post:
+      consumes:
+      - application/json
+      description: Create a new task
+      parameters:
+      - description: Task data
+        in: body
+        name: media
+        required: true
+        schema:
+          $ref: '#/definitions/courier.TaskCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task created
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create task
+      tags:
+      - task
+  /task/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a task by ID
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task deleted
+          schema:
+            type: string
+        "400":
+          description: Invalid media ID
+          schema:
+            type: string
+        "404":
+          description: Task not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete task
+      tags:
+      - task
+    get:
+      consumes:
+      - application/json
+      description: Get a task
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/courier.TaskGetByIdRes'
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get task
+      tags:
+      - task
+    put:
+      consumes:
+      - application/json
+      description: Update an existing task
+      parameters:
+      - description: Id
+        in: query
+        name: id
+        type: string
+      - description: Status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task updated
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "404":
+          description: Task not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update task
+      tags:
+      - task
+  /task/all:
+    get:
+      consumes:
+      - application/json
+      description: Get all tasks
+      parameters:
+      - description: Status
+        in: query
+        name: status
+        type: string
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/courier.TaskGetAllRes'
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all tasks
+      tags:
+      - task
 securityDefinitions:
   BearerAuth:
     in: header

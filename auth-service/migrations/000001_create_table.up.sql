@@ -16,7 +16,13 @@ BEGIN
             'delivered',
             'cancelled'
         );
-    END IF;     
+    END IF;    
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'read_status') THEN
+        CREATE TYPE read_status AS ENUM(
+            'false', 
+            'true'
+        );
+    END IF;    
 END $$;
 
 CREATE TABLE IF NOT EXISTS users (
@@ -43,37 +49,12 @@ CREATE TABLE IF NOT EXISTS products (
     deleted_at BIGINT DEFAULT 0
 );
 
--- Orders Table
-CREATE TABLE IF NOT EXISTS orders (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
-    courier_id UUID REFERENCES users(id),
-    status order_status NOT NULL DEFAULT 'pending',
-    total_amount INTEGER NOT NULL,
-    delivery_address TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    deleted_at BIGINT DEFAULT 0
-);
-
--- Order Items Table
-CREATE TABLE IF NOT EXISTS order_items (
-    id UUID PRIMARY KEY,
-    order_id UUID REFERENCES orders(id),
-    product_id UUID REFERENCES products(id),
-    quantity INTEGER NOT NULL,
-    price INTEGER NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    deleted_at BIGINT DEFAULT 0
-);
-
 -- Notifications Table
 CREATE TABLE IF NOT EXISTS notifications (
     id UUID PRIMARY KEY,
     user_id UUID REFERENCES users(id),
     message TEXT NOT NULL,
-    is_read BOOLEAN DEFAULT FALSE,
+    is_read read_status DEFAULT 'false',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     deleted_at BIGINT DEFAULT 0
@@ -96,20 +77,63 @@ CREATE TABLE IF NOT EXISTS tasks (
 CREATE TABLE IF NOT EXISTS courier_locations (
     id UUID PRIMARY KEY,
     courier_id UUID REFERENCES users(id),
-    latitude DECIMAL(10, 8) NOT NULL,
-    longitude DECIMAL(11, 8) NOT NULL,
+    location VARCHAR(64) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     deleted_at BIGINT DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS carts (
+CREATE TABLE IF NOT EXISTS carts(
     id UUID PRIMARY KEY,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
-    quantity INTEGER NOT NULL,
-    options VARCHAR(256),
+    total_amount BIGINT DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     deleted_at BIGINT DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS cart_items (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    cart_id UUID REFERENCES carts(id) ON DELETE CASCADE,
+    quantity INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at BIGINT DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES users(id),
+    courier_id UUID REFERENCES users(id),
+    status order_status NOT NULL DEFAULT 'pending',
+    total_amount INTEGER NOT NULL,
+    delivery_address TEXT NOT NULL,
+    delivery_schedule TIMESTAMP WITH TIME ZONE DEFAULT (CURRENT_TIMESTAMP + INTERVAL '30 minutes'),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at BIGINT DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+    id UUID PRIMARY KEY,
+    order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    quantity INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at BIGINT DEFAULT 0
+);
+
+ALTER TABLE cart_items
+ADD CONSTRAINT cart_items_unique_tg UNIQUE (product_id, cart_id);
+
+ALTER TABLE cart_items
+ADD CONSTRAINT cart_items_product_unique UNIQUE (product_id, deleted_at);
+
+ALTER TABLE carts
+ADD CONSTRAINT cart_user_unique UNIQUE (user_id, deleted_at);
+
+ALTER TABLE order_items
+ADD CONSTRAINT order_items_unique UNIQUE (product_id, order_id);

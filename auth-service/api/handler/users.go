@@ -4,6 +4,7 @@ import (
 	ap "auth/genproto/auth"
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 
@@ -12,6 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gin-gonic/gin"
+	"auth/client"
 )
 
 const emailRegex = `^[a-zA-Z0-9._]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
@@ -34,13 +36,13 @@ func isValidEmail(email string) bool {
 // @Router /admin/register [post]
 func (h *Handler) AdminRegister(c *gin.Context) {
 	var req ap.UserCreateReq
-	
+
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if !isValidEmail(req.Email){
+	if !isValidEmail(req.Email) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Incorrect email"})
 		return
 	}
@@ -71,7 +73,6 @@ func (h *Handler) AdminRegister(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Admin registered"})
 }
 
-
 // Register godoc
 // @Summary Register a new user
 // @Description Register a new user
@@ -85,13 +86,13 @@ func (h *Handler) AdminRegister(c *gin.Context) {
 // @Router /user/register [post]
 func (h *Handler) UserRegister(c *gin.Context) {
 	var req ap.UserCreateReq
-	
+
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if !isValidEmail(req.Email){
+	if !isValidEmail(req.Email) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Incorrect email"})
 		return
 	}
@@ -119,6 +120,14 @@ func (h *Handler) UserRegister(c *gin.Context) {
 		return
 	}
 
+	user_id, err := h.User.CheckEmail(context.Background(), &ap.CheckEmailReq{Email: req.Email})
+
+	if err != nil || user_id.Id == "" || user_id.Id == "string" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user not found"})
+		log.Println("error: ", err)
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{"message": "User registered"})
 }
 
@@ -141,7 +150,7 @@ func (h *Handler) CourierRegister(c *gin.Context) {
 		return
 	}
 
-	if !isValidEmail(req.Email){
+	if !isValidEmail(req.Email) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Incorrect email"})
 		return
 	}
@@ -264,7 +273,7 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 	name := c.Query("username")
 	email := c.Query("email")
 
-	if !isValidEmail(email){
+	if !isValidEmail(email) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Incorrect email"})
 		return
 	}
@@ -429,7 +438,6 @@ func (h *Handler) ResetPassword(c *gin.Context) {
 	var resetCode ap.UsersResetPassword
 	reset_token := c.Query("reset_token")
 	new_password := c.Query("new_password")
-
 
 	if new_password == "" || new_password == "string" {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Passwrod is empty"})

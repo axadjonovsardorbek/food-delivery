@@ -4,3 +4,6 @@
 [submodule "api-gateway/delivery-submodule"]
 	path = api-gateway/delivery-submodule
 	url = git@github.com:axadjonovsardorbek/delivery-submodule.git
+[submodule "courier-service/delivery-submodule"]
+	path = courier-service/delivery-submodule
+	url = git@github.com:axadjonovsardorbek/delivery-submodule.git

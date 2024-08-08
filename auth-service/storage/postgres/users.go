@@ -343,4 +343,39 @@ func (u *UsersRepo) ChangePassword(req *ap.UsersChangePassword) (*ap.Void, error
 	return nil, nil
 }
 
-// func (u *UsersRepo) CheckEmail()
+func (u *UsersRepo) CheckEmail(req *ap.CheckEmailReq)(*ap.ById, error){
+	query := `
+	SELECT 
+		id
+	FROM
+		users
+	WHERE 
+		email = $1
+	AND 
+		deleted_at = 0
+	`
+
+	row := u.db.QueryRow(query, req.Email)
+
+	var user_id string
+
+	err := row.Scan(
+		&user_id,
+	)
+
+	if err == sql.ErrNoRows {
+		log.Println("Cart is empty")
+		return nil, errors.New("cart is empty")
+	}
+
+	if err != nil {
+		log.Println("Error while getting cart id: ", err)
+		return nil, err
+	}
+
+	log.Println("Successfully got cart id")
+
+	return &ap.ById{
+		Id: user_id,
+	}, nil
+}

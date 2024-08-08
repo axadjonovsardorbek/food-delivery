@@ -28,13 +28,11 @@ func (r *CartRepo) Create(req *op.CartCreateReq) (*op.Void, error) {
 	INSERT INTO carts(
 		id, 
 		user_id,
-		product_id,
-		quantity,
-		options
-	) VALUES ($1, $2, $3, $4, $5)
+		total_amount
+	) VALUES ($1, $2, $3)
 	`
 
-	_, err := r.db.Exec(query, id, req.UserId, req.ProductId, req.Quantity, req.Options)
+	_, err := r.db.Exec(query, id, req.UserId, req.TotalAmount)
 
 	if err != nil {
 		log.Println("Error while creating cart: ", err)
@@ -54,9 +52,7 @@ func (r *CartRepo) GetById(req *op.ById) (*op.CartGetByIdRes, error) {
 	SELECT 
 		id, 
 		user_id,
-		product_id,
-		quantity,
-		options
+		total_amount
 	FROM 
 		carts
 	WHERE 
@@ -70,9 +66,7 @@ func (r *CartRepo) GetById(req *op.ById) (*op.CartGetByIdRes, error) {
 	err := row.Scan(
 		&cart.Cart.Id,
 		&cart.Cart.UserId,
-		&cart.Cart.ProductId,
-		&cart.Cart.Quantity,
-		&cart.Cart.Options,
+		&cart.Cart.TotalAmount,
 	)
 
 	if err == sql.ErrNoRows {
@@ -96,9 +90,7 @@ func (r *CartRepo) GetAll(req *op.CartGetAllReq) (*op.CartGetAllRes, error) {
 	SELECT 
 		id, 
 		user_id,
-		product_id,
-		quantity,
-		options
+		total_amount
 	FROM 
 		carts
 	WHERE 
@@ -123,8 +115,6 @@ func (r *CartRepo) GetAll(req *op.CartGetAllReq) (*op.CartGetAllRes, error) {
 	limit = 10
 	offset = (req.Filter.Page - 1) * limit
 
-	fmt.Printf("%t", limit)
-
 	args = append(args, limit, offset)
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)-1, len(args))
 
@@ -146,9 +136,7 @@ func (r *CartRepo) GetAll(req *op.CartGetAllReq) (*op.CartGetAllRes, error) {
 		err := rows.Scan(
 			&cart.Id,
 			&cart.UserId,
-			&cart.ProductId,
-			&cart.Quantity,
-			&cart.Options,
+			&cart.TotalAmount,
 		)
 
 		if err != nil {
@@ -173,17 +161,9 @@ func (r *CartRepo) Update(req *op.CartUpdateReq) (*op.Void, error) {
 	var conditions []string
 	var args []interface{}
 
-	if req.Cart.ProductId != "" && req.Cart.ProductId != "string" {
-		conditions = append(conditions, " product_id = $"+strconv.Itoa(len(args)+1))
-		args = append(args, req.Cart.ProductId)
-	}
-	if req.Cart.Quantity > 0 {
-		conditions = append(conditions, " quantity = $"+strconv.Itoa(len(args)+1))
-		args = append(args, req.Cart.Quantity)
-	}
-	if req.Cart.Options != "" && req.Cart.Options != "string" {
-		conditions = append(conditions, " options = $"+strconv.Itoa(len(args)+1))
-		args = append(args, req.Cart.Options)
+	if req.TotalAmount > 0{
+		conditions = append(conditions, " total_amount = $"+strconv.Itoa(len(args)+1))
+		args = append(args, req.TotalAmount)
 	}
 
 	if len(conditions) == 0 {
@@ -192,9 +172,9 @@ func (r *CartRepo) Update(req *op.CartUpdateReq) (*op.Void, error) {
 
 	conditions = append(conditions, " updated_at = now()")
 	query += strings.Join(conditions, ", ")
-	query += " WHERE id = $" + strconv.Itoa(len(args)+1) + " AND deleted_at = 0  AND user_id = $" + strconv.Itoa(len(args)+1)
+	query += " WHERE id = $" + strconv.Itoa(len(args)+1) + " AND deleted_at = 0  AND user_id = $" + strconv.Itoa(len(args)+2)
 
-	args = append(args, req.Id, req.Cart.UserId)
+	args = append(args, req.Id, req.UserId)
 
 	_, err := r.db.Exec(query, args...)
 
@@ -210,11 +190,11 @@ func (r *CartRepo) Update(req *op.CartUpdateReq) (*op.Void, error) {
 func (r *CartRepo) Delete(req *op.ById) (*op.Void, error) {
 	query := `
 	UPDATE 
-		carts
+		cart_items
 	SET 
 		deleted_at = EXTRACT(EPOCH FROM NOW())
 	WHERE 
-		id = $1
+		cart_id = $1
 	AND 
 		deleted_at = 0
 	`
