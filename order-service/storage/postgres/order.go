@@ -254,3 +254,79 @@ func (r *OrderRepo) Delete(req *op.ById) (*op.Void, error) {
 
 	return nil, nil
 }
+
+func (r *OrderRepo) Orders(req *op.OrderGetAllReq) (*op.OrderGetAllRes, error) {
+	orders := op.OrderGetAllRes{}
+
+	query := `
+	SELECT 
+		id, 
+		user_id,
+		CASE 
+        	WHEN courier_id IS NULL THEN 'No courier assigned' 
+        	ELSE courier_id::text 
+    	END as courier_status,
+		status,
+		total_amount,
+		delivery_address,
+		delivery_schedule
+	FROM 
+		orders
+	WHERE 
+		deleted_at = 0	
+	AND
+		courier_id IS NULL
+	AND
+		status <> 'cancelled'
+	AND
+		status <> 'delivered'
+	`
+
+	var args []interface{}
+
+	var limit int32
+	var offset int32
+
+	limit = 10
+	offset = (req.Filter.Page - 1) * limit
+
+	args = append(args, limit, offset)
+	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)-1, len(args))
+
+	rows, err := r.db.Query(query, args...)
+
+	if err == sql.ErrNoRows {
+		log.Println("Orders not found")
+		return nil, errors.New("orders not found")
+	}
+
+	if err != nil {
+		log.Println("Error while retriving orders: ", err)
+		return nil, err
+	}
+
+	for rows.Next() {
+		order := op.OrderRes{}
+
+		err := rows.Scan(
+			&order.Id,
+			&order.UserId,
+			&order.CourierId,
+			&order.Status,
+			&order.TotalAmount,
+			&order.DeliveryAddress,
+			&order.DeliverySchedule,
+		)
+
+		if err != nil {
+			log.Println("Error while scanning all orders: ", err)
+			return nil, err
+		}
+
+		orders.Orders = append(orders.Orders, &order)
+	}
+
+	log.Println("Successfully fetched all orders")
+
+	return &orders, nil
+}

@@ -30,9 +30,7 @@ func main() {
 
 	cp.RegisterNotificationServiceServer(s, service.NewNotificationService(db))
 	cp.RegisterTaskServiceServer(s, service.NewTaskService(db))
-	// op.RegisterCartItemServiceServer(s, service.NewCartItemService(db))
-	// op.RegisterOrderServiceServer(s, service.NewOrderService(db))
-	// op.RegisterOrderItemServiceServer(s, service.NewOrderItemService(db))
+	cp.RegisterCourierLocationServiceServer(s, service.NewCourierLocationService(db))
 
 	log.Printf("server listening at %v", listener.Addr())
 	if err := s.Serve(listener); err != nil {

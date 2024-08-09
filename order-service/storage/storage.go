@@ -36,6 +36,7 @@ type OrderI interface {
 	GetAll(*op.OrderGetAllReq) (*op.OrderGetAllRes, error)
 	Update(*op.OrderUpdateReq) (*op.Void, error)
 	Delete(*op.ById) (*op.Void, error)
+	Orders(*op.OrderGetAllReq) (*op.OrderGetAllRes, error)
 }
 
 type OrderItemI interface {

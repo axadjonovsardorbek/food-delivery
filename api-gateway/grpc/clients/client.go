@@ -17,6 +17,7 @@ type GrpcClients struct {
 	OrderItem    op.OrderItemServiceClient
 	Task         cp.TaskServiceClient
 	Notification cp.NotificationServiceClient
+	Location     cp.CourierLocationServiceClient
 }
 
 func NewGrpcClients(cfg *config.Config) (*GrpcClients, error) {
@@ -40,5 +41,6 @@ func NewGrpcClients(cfg *config.Config) (*GrpcClients, error) {
 		OrderItem:    op.NewOrderItemServiceClient(connO),
 		Task:         cp.NewTaskServiceClient(connC),
 		Notification: cp.NewNotificationServiceClient(connC),
+		Location:     cp.NewCourierLocationServiceClient(connC),
 	}, nil
 }

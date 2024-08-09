@@ -30,3 +30,6 @@ func (s *OrderService) Update(ctx context.Context, req *op.OrderUpdateReq) (*op.
 func (s *OrderService) Delete(ctx context.Context, req *op.ById) (*op.Void, error) {
 	return s.storage.OrderS.Delete(req)
 }
+func (s *OrderService) Orders(ctx context.Context, req *op.OrderGetAllReq) (*op.OrderGetAllRes, error) {
+	return s.storage.OrderS.Orders(req)
+}

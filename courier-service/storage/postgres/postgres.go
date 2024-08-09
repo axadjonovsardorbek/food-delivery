@@ -13,6 +13,7 @@ type Storage struct {
 	Db            *sql.DB
 	NotificationS storage.NotificationI
 	TaskS         storage.TaskI
+	LocationS     storage.CourierLocationI
 }
 
 func NewPostgresStorage(config config.Config) (*Storage, error) {
@@ -30,14 +31,12 @@ func NewPostgresStorage(config config.Config) (*Storage, error) {
 
 	notification := NewNotificationRepo(db)
 	task := NewTaskRepo(db)
-	// comment := NewCommentsRepo(db)
-	// shared := NewSharedMemoriesRepo(db)
+	location := NewCourierLocationRepo(db)
 
 	return &Storage{
 		Db:            db,
 		NotificationS: notification,
 		TaskS:         task,
-		// SharedMemoryS: shared,
-		// CommentS:      comment,
+		LocationS:     location,
 	}, nil
 }

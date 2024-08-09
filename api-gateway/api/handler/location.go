@@ -11,19 +11,19 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-// TaskCreate handles the creation of a new task.
-// @Summary Create task
-// @Description Create a new task
-// @Tags task
+// LocationCreate handles the creation of a new location.
+// @Summary Create location
+// @Description Create a new location
+// @Tags location
 // @Accept json
 // @Produce json
-// @Param media body cp.TaskCreateReq true "Task data"
-// @Success 200 {object} string "Task created"
+// @Param location body cp.LocationCreateReq true "Location data"
+// @Success 200 {object} string "Location created"
 // @Failure 400 {object} string "Invalid request payload"
 // @Failure 500 {object} string "Server error"
 // @Security BearerAuth
-// @Router /admin/task [post]
-func (h *Handler) TaskCreate(c *gin.Context) {
+// @Router /courier/location [post]
+func (h *Handler) LocationCreate(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -31,20 +31,23 @@ func (h *Handler) TaskCreate(c *gin.Context) {
 	}
 
 	role := claims.(jwt.MapClaims)["role"].(string)
+	id := claims.(jwt.MapClaims)["user_id"].(string)
 
-	if role != "admin" {
+	if role != "courier" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "This page forbidden for you"})
 		return
 	}
 
-	var req cp.TaskCreateReq
+	var req cp.LocationCreateReq
 
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
-	_, err := h.srvs.Task.Create(context.Background(), &req)
+	req.CourierId = id
+
+	_, err := h.srvs.Location.Create(context.Background(), &req)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -52,33 +55,22 @@ func (h *Handler) TaskCreate(c *gin.Context) {
 		return
 	}
 
-	_, err = h.srvs.Notification.Create(context.Background(), &cp.NotificationCreateReq{
-		UserId:  req.AssignedTo,
-		Message: "Task created for you",
-	})
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		log.Println("error: ", err)
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Task created"})
+	c.JSON(http.StatusOK, gin.H{"message": "Location created"})
 }
 
-// TaskGetById handles the get a task.
-// @Summary Get task
-// @Description Get a task
-// @Tags task
+// LocationGetById handles the get a location.
+// @Summary Get location
+// @Description Get a location
+// @Tags location
 // @Accept json
 // @Produce json
-// @Param id path string true "Task ID"
-// @Success 200 {object} cp.TaskGetByIdRes
+// @Param id path string true "Location ID"
+// @Success 200 {object} cp.LocationGetByIdRes
 // @Failure 400 {object} string "Invalid request payload"
 // @Failure 500 {object} string "Server error"
 // @Security BearerAuth
-// @Router /admin/task/{id} [get]
-func (h *Handler) TaskGetById(c *gin.Context) {
+// @Router /courier/location/{id} [get]
+func (h *Handler) LocationGetById(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -87,34 +79,33 @@ func (h *Handler) TaskGetById(c *gin.Context) {
 
 	role := claims.(jwt.MapClaims)["role"].(string)
 
-	if role != "admin" {
+	if role != "courier" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "This page forbidden for you"})
 		return
 	}
 
 	id := &cp.ById{Id: c.Param("id")}
-	res, err := h.srvs.Task.GetById(context.Background(), id)
+	res, err := h.srvs.Location.GetById(context.Background(), id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't get task", "details": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't get location", "details": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, res)
 }
 
-// TaskGetAll handles getting all tasks.
-// @Summary Get all tasks
-// @Description Get all tasks
-// @Tags task
+// LocationGetAll handles getting all location.
+// @Summary Get all location
+// @Description Get all location
+// @Tags location
 // @Accept json
 // @Produce json
-// @Param status query string false "Status"
 // @Param page query integer false "Page"
-// @Success 200 {object} cp.TaskGetAllRes
+// @Success 200 {object} cp.LocationGetAllRes
 // @Failure 400 {object} string "Invalid parameters"
 // @Failure 500 {object} string "Server error"
 // @Security BearerAuth
-// @Router /admin/task/all [get]
-func (h *Handler) TaskGetAll(c *gin.Context) {
+// @Router /courier/location/all [get]
+func (h *Handler) LocationGetAll(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -122,15 +113,16 @@ func (h *Handler) TaskGetAll(c *gin.Context) {
 	}
 
 	role := claims.(jwt.MapClaims)["role"].(string)
+	id := claims.(jwt.MapClaims)["user_id"].(string)
 
-	if role != "admin" {
+	if role != "courier" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "This page forbidden for you"})
 		return
 	}
 
-	req := cp.TaskGetAllReq{
-		Status: c.Query("status"),
-		Filter: &cp.Filter{},
+	req := cp.LocationGetAllReq{
+		CourierId: id,
+		Filter:    &cp.Filter{},
 	}
 
 	pageStr := c.Query("page")
@@ -152,31 +144,31 @@ func (h *Handler) TaskGetAll(c *gin.Context) {
 
 	req.Filter.Page = filter.Page
 
-	res, err := h.srvs.Task.GetAll(context.Background(), &req)
+	res, err := h.srvs.Location.GetAll(context.Background(), &req)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't get tasks", "details": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't get locations", "details": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, res)
 }
 
-// TaskUpdate handles updating an existing task.
-// @Summary Update task
-// @Description Update an existing task
-// @Tags task
+// LocationUpdate handles updating an existing location.
+// @Summary Update location
+// @Description Update an existing location
+// @Tags location
 // @Accept json
 // @Produce json
 // @Param id query string false "Id"
-// @Param status query string false "Status"
-// @Success 200 {object} string "Task updated"
+// @Param location query string false "Location"
+// @Success 200 {object} string "Location updated"
 // @Failure 400 {object} string "Invalid request payload"
-// @Failure 404 {object} string "Task not found"
+// @Failure 404 {object} string "Location not found"
 // @Failure 500 {object} string "Server error"
 // @Security BearerAuth
-// @Router /admin/task/{id} [put]
-func (h *Handler) TaskUpdate(c *gin.Context) {
+// @Router /courier/location/{id} [put]
+func (h *Handler) LocationUpdate(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -185,38 +177,38 @@ func (h *Handler) TaskUpdate(c *gin.Context) {
 
 	role := claims.(jwt.MapClaims)["role"].(string)
 
-	if role != "admin" {
+	if role != "courier" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "This page forbidden for you"})
 		return
 	}
 
-	task := cp.TaskUpdateReq{
-		Id:     c.Query("id"),
-		Status: c.Query("status"),
+	location := cp.LocationUpdateReq{
+		Id:       c.Query("id"),
+		Location: c.Query("location"),
 	}
 
-	_, err := h.srvs.Task.Update(context.Background(), &task)
+	_, err := h.srvs.Location.Update(context.Background(), &location)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't update task", "details": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't update location", "details": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Task updated"})
+	c.JSON(http.StatusOK, gin.H{"message": "Location updated"})
 }
 
-// TaskDelete handles deleting a task by ID.
-// @Summary Delete task
-// @Description Delete a task by ID
-// @Tags task
+// LocationDelete handles deleting a location by ID.
+// @Summary Delete location
+// @Description Delete a location by ID
+// @Tags location
 // @Accept json
 // @Produce json
-// @Param id path string true "Task ID"
-// @Success 200 {object} string "Task deleted"
+// @Param id path string true "Location ID"
+// @Success 200 {object} string "Location deleted"
 // @Failure 400 {object} string "Invalid media ID"
-// @Failure 404 {object} string "Task not found"
+// @Failure 404 {object} string "Location not found"
 // @Failure 500 {object} string "Server error"
 // @Security BearerAuth
-// @Router /admin/task/{id} [delete]
-func (h *Handler) TaskDelete(c *gin.Context) {
+// @Router /courier/location/{id} [delete]
+func (h *Handler) LocationDelete(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -225,16 +217,16 @@ func (h *Handler) TaskDelete(c *gin.Context) {
 
 	role := claims.(jwt.MapClaims)["role"].(string)
 
-	if role != "admin" {
+	if role != "courier" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "This page forbidden for you"})
 		return
 	}
 
 	id := &cp.ById{Id: c.Param("id")}
-	_, err := h.srvs.Task.Delete(context.Background(), id)
+	_, err := h.srvs.Location.Delete(context.Background(), id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't delete task", "details": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't delete location", "details": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Task deleted"})
+	c.JSON(http.StatusOK, gin.H{"message": "Location deleted"})
 }

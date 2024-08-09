@@ -1,4 +1,32 @@
 definitions:
+  courier.LocationCreateReq:
+    properties:
+      courier_id:
+        type: string
+      location:
+        type: string
+    type: object
+  courier.LocationGetAllRes:
+    properties:
+      tasks:
+        items:
+          $ref: '#/definitions/courier.LocationRes'
+        type: array
+    type: object
+  courier.LocationGetByIdRes:
+    properties:
+      location:
+        $ref: '#/definitions/courier.LocationRes'
+    type: object
+  courier.LocationRes:
+    properties:
+      courier_id:
+        type: string
+      id:
+        type: string
+      location:
+        type: string
+    type: object
   courier.NotificationCreateReq:
     properties:
       message:
@@ -155,6 +183,29 @@ definitions:
       order:
         $ref: '#/definitions/order.OrderRes'
     type: object
+  order.OrderItemGetAllRes:
+    properties:
+      orders:
+        items:
+          $ref: '#/definitions/order.OrderItemRes'
+        type: array
+    type: object
+  order.OrderItemGetByIdRes:
+    properties:
+      order:
+        $ref: '#/definitions/order.OrderItemRes'
+    type: object
+  order.OrderItemRes:
+    properties:
+      id:
+        type: string
+      order_id:
+        type: string
+      product_id:
+        type: string
+      quantity:
+        type: integer
+    type: object
   order.OrderRes:
     properties:
       courier_id:
@@ -211,6 +262,242 @@ definitions:
 info:
   contact: {}
 paths:
+  /admin/assign/order:
+    post:
+      consumes:
+      - application/json
+      description: Assign an existing order
+      parameters:
+      - description: Id
+        in: query
+        name: id
+        type: string
+      - description: CourierId
+        in: query
+        name: courier_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Assigned order
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "404":
+          description: Order not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Assign order
+      tags:
+      - admin
+  /admin/orders:
+    get:
+      consumes:
+      - application/json
+      description: Get all order
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/order.OrderGetAllRes'
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all order
+      tags:
+      - admin
+  /admin/task:
+    post:
+      consumes:
+      - application/json
+      description: Create a new task
+      parameters:
+      - description: Task data
+        in: body
+        name: media
+        required: true
+        schema:
+          $ref: '#/definitions/courier.TaskCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task created
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create task
+      tags:
+      - task
+  /admin/task/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a task by ID
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task deleted
+          schema:
+            type: string
+        "400":
+          description: Invalid media ID
+          schema:
+            type: string
+        "404":
+          description: Task not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete task
+      tags:
+      - task
+    get:
+      consumes:
+      - application/json
+      description: Get a task
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/courier.TaskGetByIdRes'
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get task
+      tags:
+      - task
+    put:
+      consumes:
+      - application/json
+      description: Update an existing task
+      parameters:
+      - description: Id
+        in: query
+        name: id
+        type: string
+      - description: Status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task updated
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "404":
+          description: Task not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update task
+      tags:
+      - task
+  /admin/task/all:
+    get:
+      consumes:
+      - application/json
+      description: Get all tasks
+      parameters:
+      - description: Status
+        in: query
+        name: status
+        type: string
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/courier.TaskGetAllRes'
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all tasks
+      tags:
+      - task
   /cart:
     post:
       consumes:
@@ -512,6 +799,280 @@ paths:
       summary: Get all carts
       tags:
       - cart item
+  /courier/accept:
+    post:
+      consumes:
+      - application/json
+      description: Accept an existing order
+      parameters:
+      - description: Id
+        in: query
+        name: id
+        type: string
+      - description: CourierId
+        in: query
+        name: courier_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Accepted order
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "404":
+          description: Order not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Accept order
+      tags:
+      - courier
+  /courier/location:
+    post:
+      consumes:
+      - application/json
+      description: Create a new location
+      parameters:
+      - description: Location data
+        in: body
+        name: location
+        required: true
+        schema:
+          $ref: '#/definitions/courier.LocationCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Location created
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create location
+      tags:
+      - location
+  /courier/location/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a location by ID
+      parameters:
+      - description: Location ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Location deleted
+          schema:
+            type: string
+        "400":
+          description: Invalid media ID
+          schema:
+            type: string
+        "404":
+          description: Location not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete location
+      tags:
+      - location
+    get:
+      consumes:
+      - application/json
+      description: Get a location
+      parameters:
+      - description: Location ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/courier.LocationGetByIdRes'
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get location
+      tags:
+      - location
+    put:
+      consumes:
+      - application/json
+      description: Update an existing location
+      parameters:
+      - description: Id
+        in: query
+        name: id
+        type: string
+      - description: Location
+        in: query
+        name: location
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Location updated
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "404":
+          description: Location not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update location
+      tags:
+      - location
+  /courier/location/all:
+    get:
+      consumes:
+      - application/json
+      description: Get all location
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/courier.LocationGetAllRes'
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all location
+      tags:
+      - location
+  /courier/order/history:
+    get:
+      consumes:
+      - application/json
+      description: Get all order
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/order.OrderGetAllRes'
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all order
+      tags:
+      - courier
+  /courier/status/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update an existing order
+      parameters:
+      - description: Id
+        in: query
+        name: id
+        type: string
+      - description: Status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Accepted order
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "404":
+          description: Order not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update order
+      tags:
+      - courier
   /notification:
     post:
       consumes:
@@ -773,47 +1334,6 @@ paths:
       summary: Get order
       tags:
       - order
-    put:
-      consumes:
-      - application/json
-      description: Update an existing order
-      parameters:
-      - description: Id
-        in: query
-        name: id
-        type: string
-      - description: CourierId
-        in: query
-        name: courier_id
-        type: string
-      - description: Status
-        in: query
-        name: status
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Order updated
-          schema:
-            type: string
-        "400":
-          description: Invalid request payload
-          schema:
-            type: string
-        "404":
-          description: Order not found
-          schema:
-            type: string
-        "500":
-          description: Server error
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: Update order
-      tags:
-      - order
   /order/all:
     get:
       consumes:
@@ -848,6 +1368,67 @@ paths:
       summary: Get all order
       tags:
       - order
+  /order_item/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a item
+      parameters:
+      - description: OrderItem ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/order.OrderItemGetByIdRes'
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get item
+      tags:
+      - order item
+  /order_item/all:
+    get:
+      consumes:
+      - application/json
+      description: Get all item
+      parameters:
+      - description: OrderId
+        in: query
+        name: order_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/order.OrderItemGetAllRes'
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all item
+      tags:
+      - order item
   /product:
     post:
       consumes:
@@ -1022,174 +1603,6 @@ paths:
       summary: Get all product
       tags:
       - product
-  /task:
-    post:
-      consumes:
-      - application/json
-      description: Create a new task
-      parameters:
-      - description: Task data
-        in: body
-        name: media
-        required: true
-        schema:
-          $ref: '#/definitions/courier.TaskCreateReq'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Task created
-          schema:
-            type: string
-        "400":
-          description: Invalid request payload
-          schema:
-            type: string
-        "500":
-          description: Server error
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: Create task
-      tags:
-      - task
-  /task/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete a task by ID
-      parameters:
-      - description: Task ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Task deleted
-          schema:
-            type: string
-        "400":
-          description: Invalid media ID
-          schema:
-            type: string
-        "404":
-          description: Task not found
-          schema:
-            type: string
-        "500":
-          description: Server error
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: Delete task
-      tags:
-      - task
-    get:
-      consumes:
-      - application/json
-      description: Get a task
-      parameters:
-      - description: Task ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/courier.TaskGetByIdRes'
-        "400":
-          description: Invalid request payload
-          schema:
-            type: string
-        "500":
-          description: Server error
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: Get task
-      tags:
-      - task
-    put:
-      consumes:
-      - application/json
-      description: Update an existing task
-      parameters:
-      - description: Id
-        in: query
-        name: id
-        type: string
-      - description: Status
-        in: query
-        name: status
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Task updated
-          schema:
-            type: string
-        "400":
-          description: Invalid request payload
-          schema:
-            type: string
-        "404":
-          description: Task not found
-          schema:
-            type: string
-        "500":
-          description: Server error
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: Update task
-      tags:
-      - task
-  /task/all:
-    get:
-      consumes:
-      - application/json
-      description: Get all tasks
-      parameters:
-      - description: Status
-        in: query
-        name: status
-        type: string
-      - description: Page
-        in: query
-        name: page
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/courier.TaskGetAllRes'
-        "400":
-          description: Invalid parameters
-          schema:
-            type: string
-        "500":
-          description: Server error
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: Get all tasks
-      tags:
-      - task
 securityDefinitions:
   BearerAuth:
     in: header
