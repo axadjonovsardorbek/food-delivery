@@ -12,7 +12,7 @@ import (
 // OrderItemGetById handles the get a item.
 // @Summary Get item
 // @Description Get a item
-// @Tags order item
+// @Tags order
 // @Accept json
 // @Produce json
 // @Param id path string true "OrderItem ID"
@@ -20,7 +20,7 @@ import (
 // @Failure 400 {object} string "Invalid request payload"
 // @Failure 500 {object} string "Server error"
 // @Security BearerAuth
-// @Router /order_item/{id} [get]
+// @Router /order/item/{id} [get]
 func (h *Handler) OrderItemGetById(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
@@ -47,7 +47,7 @@ func (h *Handler) OrderItemGetById(c *gin.Context) {
 // OrderItemGetAll handles getting all item.
 // @Summary Get all item
 // @Description Get all item
-// @Tags order item
+// @Tags order
 // @Accept json
 // @Produce json
 // @Param order_id query string false "OrderId"
@@ -55,7 +55,7 @@ func (h *Handler) OrderItemGetById(c *gin.Context) {
 // @Failure 400 {object} string "Invalid parameters"
 // @Failure 500 {object} string "Server error"
 // @Security BearerAuth
-// @Router /order_item/all [get]
+// @Router /order/item/all [get]
 func (h *Handler) OrderItemGetAll(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {

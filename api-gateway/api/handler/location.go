@@ -14,7 +14,7 @@ import (
 // LocationCreate handles the creation of a new location.
 // @Summary Create location
 // @Description Create a new location
-// @Tags location
+// @Tags courier
 // @Accept json
 // @Produce json
 // @Param location body cp.LocationCreateReq true "Location data"
@@ -61,7 +61,7 @@ func (h *Handler) LocationCreate(c *gin.Context) {
 // LocationGetById handles the get a location.
 // @Summary Get location
 // @Description Get a location
-// @Tags location
+// @Tags courier
 // @Accept json
 // @Produce json
 // @Param id path string true "Location ID"
@@ -96,7 +96,7 @@ func (h *Handler) LocationGetById(c *gin.Context) {
 // LocationGetAll handles getting all location.
 // @Summary Get all location
 // @Description Get all location
-// @Tags location
+// @Tags courier
 // @Accept json
 // @Produce json
 // @Param page query integer false "Page"
@@ -157,7 +157,7 @@ func (h *Handler) LocationGetAll(c *gin.Context) {
 // LocationUpdate handles updating an existing location.
 // @Summary Update location
 // @Description Update an existing location
-// @Tags location
+// @Tags courier
 // @Accept json
 // @Produce json
 // @Param id query string false "Id"
@@ -198,7 +198,7 @@ func (h *Handler) LocationUpdate(c *gin.Context) {
 // LocationDelete handles deleting a location by ID.
 // @Summary Delete location
 // @Description Delete a location by ID
-// @Tags location
+// @Tags courier
 // @Accept json
 // @Produce json
 // @Param id path string true "Location ID"

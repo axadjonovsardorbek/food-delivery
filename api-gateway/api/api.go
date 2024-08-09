@@ -49,13 +49,9 @@ func NewRouter(h *handler.Handler) *gin.Engine {
 	cart.GET("/all", h.CartGetAll)
 	cart.PUT("/:id", h.CartUpdate)
 	cart.DELETE("/:id", h.CartDelete)
-
-	cart_item := protected.Group("/cart_item")
-	cart_item.POST("/", h.CartItemCreate)
-	cart_item.GET("/:id", h.CartItemGetById)
-	cart_item.GET("/all", h.CartItemGetAll)
-	cart_item.PUT("/:id", h.CartItemUpdate)
-	cart_item.DELETE("/:id", h.CartItemDelete)
+	item := cart.Group("/item")
+	item.GET("/:id", h.CartItemGetById)
+	item.GET("/all", h.CartItemGetAll)
 
 	order := protected.Group("/order")
 	order.POST("/", h.OrderCreate)

@@ -939,7 +939,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "location"
+                    "courier"
                 ],
                 "summary": "Create location",
                 "parameters": [
@@ -990,7 +990,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "location"
+                    "courier"
                 ],
                 "summary": "Get all location",
                 "parameters": [
@@ -1038,7 +1038,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "location"
+                    "courier"
                 ],
                 "summary": "Get location",
                 "parameters": [
@@ -1085,7 +1085,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "location"
+                    "courier"
                 ],
                 "summary": "Update location",
                 "parameters": [
@@ -1143,7 +1143,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "location"
+                    "courier"
                 ],
                 "summary": "Delete location",
                 "parameters": [
@@ -1661,6 +1661,103 @@ const docTemplate = `{
                 }
             }
         },
+        "/order/item/all": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Get all item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "OrderId",
+                        "name": "order_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/order.OrderItemGetAllRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/order/item/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Get item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "OrderItem ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/order.OrderItemGetByIdRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/order/{id}": {
             "get": {
                 "security": [
@@ -1750,103 +1847,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Order not found",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/order_item/all": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get all item",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "order item"
-                ],
-                "summary": "Get all item",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "OrderId",
-                        "name": "order_id",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/order.OrderItemGetAllRes"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid parameters",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/order_item/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get a item",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "order item"
-                ],
-                "summary": "Get item",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "OrderItem ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/order.OrderItemGetByIdRes"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request payload",
                         "schema": {
                             "type": "string"
                         }

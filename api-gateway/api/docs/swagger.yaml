@@ -868,7 +868,7 @@ paths:
       - BearerAuth: []
       summary: Create location
       tags:
-      - location
+      - courier
   /courier/location/{id}:
     delete:
       consumes:
@@ -903,7 +903,7 @@ paths:
       - BearerAuth: []
       summary: Delete location
       tags:
-      - location
+      - courier
     get:
       consumes:
       - application/json
@@ -933,7 +933,7 @@ paths:
       - BearerAuth: []
       summary: Get location
       tags:
-      - location
+      - courier
     put:
       consumes:
       - application/json
@@ -970,7 +970,7 @@ paths:
       - BearerAuth: []
       summary: Update location
       tags:
-      - location
+      - courier
   /courier/location/all:
     get:
       consumes:
@@ -1000,7 +1000,7 @@ paths:
       - BearerAuth: []
       summary: Get all location
       tags:
-      - location
+      - courier
   /courier/order/history:
     get:
       consumes:
@@ -1368,7 +1368,7 @@ paths:
       summary: Get all order
       tags:
       - order
-  /order_item/{id}:
+  /order/item/{id}:
     get:
       consumes:
       - application/json
@@ -1398,8 +1398,8 @@ paths:
       - BearerAuth: []
       summary: Get item
       tags:
-      - order item
-  /order_item/all:
+      - order
+  /order/item/all:
     get:
       consumes:
       - application/json
@@ -1428,7 +1428,7 @@ paths:
       - BearerAuth: []
       summary: Get all item
       tags:
-      - order item
+      - order
   /product:
     post:
       consumes:
