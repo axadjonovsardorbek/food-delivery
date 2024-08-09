@@ -25,7 +25,7 @@ func (r *NotificationRepo) Create(req *cp.NotificationCreateReq) (*cp.Void, erro
 	id := uuid.New().String()
 
 	query := `
-	INSERT INTO products(
+	INSERT INTO notifications(
 		id, 
 		user_id,
 		message
