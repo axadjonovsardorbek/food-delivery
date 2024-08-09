@@ -15,4 +15,5 @@ type UserI interface {
 	ResetPassword(*ap.UsersResetPassword) (*ap.Void, error)
 	ChangePassword(*ap.UsersChangePassword) (*ap.Void, error)
 	CheckEmail(*ap.CheckEmailReq) (*ap.ById, error)
+	GetAllUsers(*ap.GetAllUsersReq) (*ap.GetAllUsersRes, error)
 }

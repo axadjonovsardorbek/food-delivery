@@ -30,6 +30,7 @@ func NewApi(h *handler.Handler) *gin.Engine {
 
 	protected := router.Group("/", middleware.JWTMiddleware())
 	protected.GET("/profile", h.Profile)
+	protected.GET("/all/users", h.GetAllUsers)
 	protected.GET("/refresh-token", h.RefreshToken)
 	protected.DELETE("/profile/delete", h.DeleteProfile)
 	protected.PUT("/profile/update", h.UpdateProfile)

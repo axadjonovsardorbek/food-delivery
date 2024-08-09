@@ -129,7 +129,6 @@ func (h *Handler) CartItemGetById(c *gin.Context) {
 // @Tags cart item
 // @Accept json
 // @Produce json
-// @Param page query integer false "Page"
 // @Success 200 {object} cp.CartItemGetAllRes
 // @Failure 400 {object} string "Invalid parameters"
 // @Failure 500 {object} string "Server error"
@@ -161,26 +160,7 @@ func (h *Handler) CartItemGetAll(c *gin.Context) {
 	req := cp.CartItemGetAllReq{
 		UserId: userId,
 		CartId: cart_id.Id,
-		Filter: &cp.Filter{},
 	}
-
-	pageStr := c.Query("page")
-	var page int
-	if pageStr == "" {
-		page = 1
-	} else {
-		page, err = strconv.Atoi(pageStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page parameter"})
-			return
-		}
-	}
-
-	filter := cp.Filter{
-		Page: int32(page),
-	}
-
-	req.Filter.Page = filter.Page
 
 	res, err := h.srvs.CartItem.GetAll(context.Background(), &req)
 

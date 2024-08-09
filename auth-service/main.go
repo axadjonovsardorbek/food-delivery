@@ -1,6 +1,5 @@
 package main
 
-
 import (
 	"auth/api"
 	"auth/api/handler"
@@ -23,17 +22,18 @@ func main() {
 
 	defer conn.Db.Close()
 
-	prod, err := kafka.NewKafkaProducer([]string{cf.KAFKA_HOST + cf.KAFKA_PORT})
 	us := service.NewUsersService(conn)
+	
+	prod, err := kafka.NewKafkaProducer([]string{cf.KAFKA_HOST + cf.KAFKA_PORT})
 	kfk := kafka.NewKafkaConsumerManager()
 	broker := []string{cf.KAFKA_HOST + cf.KAFKA_PORT}
 	kfk.RegisterConsumer(broker, "user", "u", kafka.UserCreateHandler(us))
-	
+
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-	
+
 	handler := handler.NewHandler(us, prod)
 
 	roter := api.NewApi(handler)

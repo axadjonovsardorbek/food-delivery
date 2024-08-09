@@ -15,7 +15,7 @@ func NewOrderService(storage *st.Storage) *OrderService {
 	return &OrderService{storage: *storage}
 }
 
-func (s *OrderService) Create(ctx context.Context, req *op.OrderCreateReq) (*op.Void, error) {
+func (s *OrderService) Create(ctx context.Context, req *op.OrderCreateReq) (*op.ById, error) {
 	return s.storage.OrderS.Create(req)
 }
 func (s *OrderService) GetById(ctx context.Context, req *op.ById) (*op.OrderGetByIdRes, error) {

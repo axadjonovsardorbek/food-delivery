@@ -128,6 +128,50 @@ definitions:
       user_id:
         type: string
     type: object
+  order.OrderCreateReq:
+    properties:
+      courier_id:
+        type: string
+      delivery_addres:
+        type: string
+      delivery_schedule:
+        type: string
+      status:
+        type: string
+      total_amount:
+        type: integer
+      user_id:
+        type: string
+    type: object
+  order.OrderGetAllRes:
+    properties:
+      orders:
+        items:
+          $ref: '#/definitions/order.OrderRes'
+        type: array
+    type: object
+  order.OrderGetByIdRes:
+    properties:
+      order:
+        $ref: '#/definitions/order.OrderRes'
+    type: object
+  order.OrderRes:
+    properties:
+      courier_id:
+        type: string
+      delivery_address:
+        type: string
+      delivery_schedule:
+        type: string
+      id:
+        type: string
+      status:
+        type: string
+      total_amount:
+        type: integer
+      user_id:
+        type: string
+    type: object
   order.ProductCreateReq:
     properties:
       description:
@@ -448,11 +492,6 @@ paths:
       consumes:
       - application/json
       description: Get all carts
-      parameters:
-      - description: Page
-        in: query
-        name: page
-        type: integer
       produces:
       - application/json
       responses:
@@ -637,6 +676,178 @@ paths:
       summary: Get all notification
       tags:
       - notification
+  /order:
+    post:
+      consumes:
+      - application/json
+      description: Create a new order
+      parameters:
+      - description: Order data
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/order.OrderCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order created
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create order
+      tags:
+      - order
+  /order/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a order by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order deleted
+          schema:
+            type: string
+        "400":
+          description: Invalid order ID
+          schema:
+            type: string
+        "404":
+          description: Order not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete order
+      tags:
+      - order
+    get:
+      consumes:
+      - application/json
+      description: Get a order
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/order.OrderGetByIdRes'
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get order
+      tags:
+      - order
+    put:
+      consumes:
+      - application/json
+      description: Update an existing order
+      parameters:
+      - description: Id
+        in: query
+        name: id
+        type: string
+      - description: CourierId
+        in: query
+        name: courier_id
+        type: string
+      - description: Status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order updated
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "404":
+          description: Order not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update order
+      tags:
+      - order
+  /order/all:
+    get:
+      consumes:
+      - application/json
+      description: Get all order
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/order.OrderGetAllRes'
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all order
+      tags:
+      - order
   /product:
     post:
       consumes:

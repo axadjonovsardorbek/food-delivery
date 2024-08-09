@@ -27,7 +27,7 @@ type UsersRepo struct {
 func NewUsersRepo(db *sql.DB, rdb *redis.Client) *UsersRepo {
 	return &UsersRepo{db: db, rdb: rdb}
 }
-  
+
 func (u *UsersRepo) Register(req *ap.UserCreateReq) (*ap.Void, error) {
 	id := uuid.New().String()
 
@@ -297,7 +297,7 @@ func (u *UsersRepo) ResetPassword(req *ap.UsersResetPassword) (*ap.Void, error) 
 	}
 	log.Println(em)
 
-	if em != req.ResetToken{
+	if em != req.ResetToken {
 		return nil, errors.New("invalid code or code expired")
 	}
 
@@ -343,7 +343,7 @@ func (u *UsersRepo) ChangePassword(req *ap.UsersChangePassword) (*ap.Void, error
 	return nil, nil
 }
 
-func (u *UsersRepo) CheckEmail(req *ap.CheckEmailReq)(*ap.ById, error){
+func (u *UsersRepo) CheckEmail(req *ap.CheckEmailReq) (*ap.ById, error) {
 	query := `
 	SELECT 
 		id
@@ -378,4 +378,76 @@ func (u *UsersRepo) CheckEmail(req *ap.CheckEmailReq)(*ap.ById, error){
 	return &ap.ById{
 		Id: user_id,
 	}, nil
+}
+
+func (u *UsersRepo) GetAllUsers(req *ap.GetAllUsersReq) (*ap.GetAllUsersRes, error) {
+	users := ap.GetAllUsersRes{}
+
+	query := `
+	SELECT 
+		id,
+		username,
+		role,
+		phone,
+		created_at
+	FROM 	
+		users
+	WHERE
+		deleted_at = 0
+	`
+	var args []interface{}
+	var conditions []string
+
+	if req.Role != "" && req.Role != "string" {
+		conditions = append(conditions, " role = $"+strconv.Itoa(len(args)+1))
+		args = append(args, req.Role)
+	}
+
+	if len(conditions) > 0 {
+		query += " AND " + strings.Join(conditions, " AND ")
+	}
+
+	var limit int32
+	var offset int32
+
+	limit = 10
+	offset = (req.Page - 1) * limit
+
+	args = append(args, limit, offset)
+	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)-1, len(args))
+
+	rows, err := u.db.Query(query, args...)
+
+	if err == sql.ErrNoRows {
+		log.Println("Users not found")
+		return nil, errors.New("users not found")
+	}
+
+	if err != nil {
+		log.Println("Error while retriving users: ", err)
+		return nil, err
+	}
+
+	for rows.Next() {
+		user := ap.UserRes{}
+
+		err := rows.Scan(
+			&user.Id,
+			&user.Username,
+			&user.Role,
+			&user.Phone,
+			&user.CreatedAt,
+		)
+
+		if err != nil {
+			log.Println("Error while scanning all users: ", err)
+			return nil, err
+		}
+
+		users.Users = append(users.Users, &user)
+	}
+
+	log.Println("Successfully fetched all orders")
+
+	return &users, nil
 }

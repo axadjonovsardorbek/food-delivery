@@ -7,13 +7,13 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
 
 	"github.com/golang-jwt/jwt"
 	_ "github.com/swaggo/swag"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gin-gonic/gin"
-	"auth/client"
 )
 
 const emailRegex = `^[a-zA-Z0-9._]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
@@ -244,6 +244,63 @@ func (h *Handler) Profile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, user)
+}
+
+// GetUsers godoc
+// @Summary Get users
+// @Description Get the profile of the authenticated users
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param role query string false "Role"
+// @Param page query integer false "Page"
+// @Success 200 {object} ap.GetAllUsersRes
+// @Failure 401 {object} string "Unauthorized"
+// @Failure 404 {object} string "User not found"
+// @Failure 500 {object} string "Server error"
+// @Security BearerAuth
+// @Router /all/users [get]
+func (h *Handler) GetAllUsers(c *gin.Context) {
+	claims, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	role := claims.(jwt.MapClaims)["role"].(string)
+
+	if role != "admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "This page forbidden for you"})
+		return
+	}
+
+	req := ap.GetAllUsersReq{
+		Role: c.Query("role"),
+	}
+
+	pageStr := c.Query("page")
+	var page int
+	var err error
+	if pageStr == "" {
+		page = 1
+	} else {
+		page, err = strconv.Atoi(pageStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page parameter"})
+			return
+		}
+	}
+
+	req.Page = int32(page)
+
+	res, err := h.User.GetAllUsers(context.Background(), &req)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't get users", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 // UpdateProfile godoc

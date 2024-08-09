@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  migrate:
+    image: migrate/migrate
+    networks: 
+      - delivery
+    volumes:
+      - ./auth-service/migrations:/migrations
+    command: [ "-path", "/migrations", "-database", "postgres://postgres:1111@postgres:5432/delivery?sslmode=disable", "up" ]
+    depends_on:
+      - postgres-db
+
+  postgres-db:
+    container_name: postgres
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1111
+      PGDATA: /data/postgres
+      POSTGRES_DB: delivery
+    volumes:
+     - postgres_data:/var/lib/postgres/data
+    ports:
+      - "5432:5332"
+    networks:
+      - delivery
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  
+  courier-service:
+    container_name: courier-service
+    build: ./courier-service
+    depends_on:
+      - postgres-db
+    ports:
+      - "50061:50061"
+    networks:
+      - delivery
+
+  order-service:
+    container_name: order-service
+    build: ./order-service
+    depends_on:
+      - postgres-db
+      - courier-service
+    ports:
+      - "50060:50060"
+    networks:
+      - delivery      
+    
+  delivery-gateway:
+    container_name: delivery-gateway
+    build: ./api-gateway
+    depends_on:
+      - postgres-db
+      - order-service
+      - courier-service
+    ports:
+      - "8010:8010"
+    networks:
+      - delivery
+
+  auth-service:
+    container_name: delivery-auth
+    build: ./auth-service
+    depends_on: 
+      - postgres-db
+      - order-service
+      - courier-service
+      - delivery-gateway
+      - kafka
+      - redis
+      - zookeeper
+    ports:
+      - "8070:8070"
+    networks:
+      - delivery
+
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.4
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+    networks:
+      - delivery
+ 
+  kafka:
+    image: confluentinc/cp-kafka:7.4.4
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    networks:
+      - delivery
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - delivery
+    
+networks:
+  delivery:
+    driver: bridge
+
+volumes:
+  postgres_data: 

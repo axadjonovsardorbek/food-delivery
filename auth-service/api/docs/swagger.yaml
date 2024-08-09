@@ -1,4 +1,11 @@
 definitions:
+  auth.GetAllUsersRes:
+    properties:
+      users:
+        items:
+          $ref: '#/definitions/auth.UserRes'
+        type: array
+    type: object
   auth.TokenRes:
     properties:
       exp_at:
@@ -79,6 +86,44 @@ paths:
       summary: Register a new admin
       tags:
       - admin
+  /all/users:
+    get:
+      consumes:
+      - application/json
+      description: Get the profile of the authenticated users
+      parameters:
+      - description: Role
+        in: query
+        name: role
+        type: string
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.GetAllUsersRes'
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema:
+            type: string
+        "500":
+          description: Server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get users
+      tags:
+      - user
   /change-password:
     put:
       consumes:

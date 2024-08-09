@@ -21,22 +21,19 @@ func NewOrderRepo(db *sql.DB) *OrderRepo {
 	return &OrderRepo{db: db}
 }
 
-func (r *OrderRepo) Create(req *op.OrderCreateReq) (*op.Void, error) {
+func (r *OrderRepo) Create(req *op.OrderCreateReq) (*op.ById, error) {
 	id := uuid.New().String()
 
 	query := `
 	INSERT INTO orders(
 		id, 
 		user_id,
-		courier_id,
-		status,
 		total_amount,
-		delivery_address,
-		delivery_schedule
-	) VALUES ($1, $2, $3, $4, $5, $6, $7)
+		delivery_address
+	) VALUES ($1, $2, $3, $4)
 	`
 
-	_, err := r.db.Exec(query, id, req.UserId, req.CourierId, req.Status, req.TotalAmount, req.DeliveryAddres, req.DeliverySchedule)
+	_, err := r.db.Exec(query, id, req.UserId, req.TotalAmount, req.DeliveryAddres)
 
 	if err != nil {
 		log.Println("Error while creating order: ", err)
@@ -45,7 +42,7 @@ func (r *OrderRepo) Create(req *op.OrderCreateReq) (*op.Void, error) {
 
 	log.Println("Successfully created order")
 
-	return nil, nil
+	return &op.ById{Id: id}, nil
 }
 func (r *OrderRepo) GetById(req *op.ById) (*op.OrderGetByIdRes, error) {
 	order := op.OrderGetByIdRes{
@@ -56,7 +53,10 @@ func (r *OrderRepo) GetById(req *op.ById) (*op.OrderGetByIdRes, error) {
 	SELECT 
 		id, 
 		user_id,
-		COALESCE(courier_id, 'No courier assigned') as courier_id,
+		CASE 
+        	WHEN courier_id IS NULL THEN 'No courier assigned' 
+        	ELSE courier_id::text 
+    	END as courier_status,
 		status,
 		total_amount,
 		delivery_address,
@@ -102,7 +102,10 @@ func (r *OrderRepo) GetAll(req *op.OrderGetAllReq) (*op.OrderGetAllRes, error) {
 	SELECT 
 		id, 
 		user_id,
-		COALESCE(courier_id, 'No courier assigned') as courier_id,
+		CASE 
+        	WHEN courier_id IS NULL THEN 'No courier assigned' 
+        	ELSE courier_id::text 
+    	END as courier_status,
 		status,
 		total_amount,
 		delivery_address,

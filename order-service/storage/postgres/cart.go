@@ -161,7 +161,7 @@ func (r *CartRepo) Update(req *op.CartUpdateReq) (*op.Void, error) {
 	var conditions []string
 	var args []interface{}
 
-	if req.TotalAmount > 0{
+	if req.TotalAmount >= 0{
 		conditions = append(conditions, " total_amount = $"+strconv.Itoa(len(args)+1))
 		args = append(args, req.TotalAmount)
 	}

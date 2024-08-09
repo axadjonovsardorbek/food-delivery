@@ -54,3 +54,7 @@ func (u *UsersService) ChangePassword(ctx context.Context, req *ap.UsersChangePa
 func (u *UsersService) CheckEmail(ctx context.Context, req *ap.CheckEmailReq) (*ap.ById, error){
 	return u.storage.UserS.CheckEmail(req)
 }
+
+func (u *UsersService) GetAllUsers(ctx context.Context, req *ap.GetAllUsersReq) (*ap.GetAllUsersRes, error){
+	return u.storage.UserS.GetAllUsers(req)
+}

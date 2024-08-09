@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS cart_items (
 CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY,
     user_id UUID REFERENCES users(id),
-    courier_id UUID REFERENCES users(id),
+    courier_id UUID REFERENCES users(id) DEFAULT NULL,
     status order_status NOT NULL DEFAULT 'pending',
     total_amount INTEGER NOT NULL,
     delivery_address TEXT NOT NULL,
@@ -127,10 +127,7 @@ CREATE TABLE IF NOT EXISTS order_items (
 );
 
 ALTER TABLE cart_items
-ADD CONSTRAINT cart_items_unique_tg UNIQUE (product_id, cart_id);
-
-ALTER TABLE cart_items
-ADD CONSTRAINT cart_items_product_unique UNIQUE (product_id, deleted_at);
+ADD CONSTRAINT cart_items_unique_tg UNIQUE (product_id, cart_id, deleted_at);
 
 ALTER TABLE carts
 ADD CONSTRAINT cart_user_unique UNIQUE (user_id, deleted_at);

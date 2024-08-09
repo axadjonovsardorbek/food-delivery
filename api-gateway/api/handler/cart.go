@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"gateway/genproto/courier"
 	cp "gateway/genproto/order"
 	"log"
 	"net/http"
@@ -42,6 +43,17 @@ func (h *Handler) CartCreate(c *gin.Context) {
 	req.UserId = id
 
 	_, err := h.srvs.Cart.Create(context.Background(), &req)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Println("error: ", err)
+		return
+	}
+
+	_, err = h.srvs.Notification.Create(context.Background(), &courier.NotificationCreateReq{
+		UserId: id,
+		Message: "Cart created for you",
+	})
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -258,6 +270,17 @@ func (h *Handler) CartDelete(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't update cart", "details": err.Error()})
 		return
 	}
-	
+
+	_, err = h.srvs.Notification.Create(context.Background(), &courier.NotificationCreateReq{
+		UserId: user_id,
+		Message: "Your cart has been emptied",
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Println("error: ", err)
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Cart deleted"})
 }

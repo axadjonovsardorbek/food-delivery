@@ -31,7 +31,7 @@ type CartItemI interface {
 }
 
 type OrderI interface {
-	Create(*op.OrderCreateReq) (*op.Void, error)
+	Create(*op.OrderCreateReq) (*op.ById, error)
 	GetById(*op.ById) (*op.OrderGetByIdRes, error)
 	GetAll(*op.OrderGetAllReq) (*op.OrderGetAllRes, error)
 	Update(*op.OrderUpdateReq) (*op.Void, error)

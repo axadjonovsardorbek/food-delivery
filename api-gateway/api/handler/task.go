@@ -22,7 +22,7 @@ import (
 // @Failure 400 {object} string "Invalid request payload"
 // @Failure 500 {object} string "Server error"
 // @Security BearerAuth
-// @Router /task [post]
+// @Router /admin/task [post]
 func (h *Handler) TaskCreate(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
@@ -32,7 +32,7 @@ func (h *Handler) TaskCreate(c *gin.Context) {
 
 	role := claims.(jwt.MapClaims)["role"].(string)
 
-	if role == "user" {
+	if role != "admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "This page forbidden for you"})
 		return
 	}
@@ -45,6 +45,17 @@ func (h *Handler) TaskCreate(c *gin.Context) {
 	}
 
 	_, err := h.srvs.Task.Create(context.Background(), &req)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Println("error: ", err)
+		return
+	}
+
+	_, err = h.srvs.Notification.Create(context.Background(), &cp.NotificationCreateReq{
+		UserId:  req.AssignedTo,
+		Message: "Your cart has been emptied",
+	})
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -66,7 +77,7 @@ func (h *Handler) TaskCreate(c *gin.Context) {
 // @Failure 400 {object} string "Invalid request payload"
 // @Failure 500 {object} string "Server error"
 // @Security BearerAuth
-// @Router /task/{id} [get]
+// @Router /admin/task/{id} [get]
 func (h *Handler) TaskGetById(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
@@ -76,7 +87,7 @@ func (h *Handler) TaskGetById(c *gin.Context) {
 
 	role := claims.(jwt.MapClaims)["role"].(string)
 
-	if role == "user" {
+	if role != "admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "This page forbidden for you"})
 		return
 	}
@@ -102,7 +113,7 @@ func (h *Handler) TaskGetById(c *gin.Context) {
 // @Failure 400 {object} string "Invalid parameters"
 // @Failure 500 {object} string "Server error"
 // @Security BearerAuth
-// @Router /task/all [get]
+// @Router /admin/task/all [get]
 func (h *Handler) TaskGetAll(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
@@ -112,7 +123,7 @@ func (h *Handler) TaskGetAll(c *gin.Context) {
 
 	role := claims.(jwt.MapClaims)["role"].(string)
 
-	if role == "user" {
+	if role != "admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "This page forbidden for you"})
 		return
 	}
@@ -126,7 +137,7 @@ func (h *Handler) TaskGetAll(c *gin.Context) {
 	var page int
 	var err error
 	if pageStr == "" {
-		page = 0
+		page = 1
 	} else {
 		page, err = strconv.Atoi(pageStr)
 		if err != nil {
@@ -164,7 +175,7 @@ func (h *Handler) TaskGetAll(c *gin.Context) {
 // @Failure 404 {object} string "Task not found"
 // @Failure 500 {object} string "Server error"
 // @Security BearerAuth
-// @Router /task/{id} [put]
+// @Router /admin/task/{id} [put]
 func (h *Handler) TaskUpdate(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
@@ -174,7 +185,7 @@ func (h *Handler) TaskUpdate(c *gin.Context) {
 
 	role := claims.(jwt.MapClaims)["role"].(string)
 
-	if role == "user" {
+	if role != "admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "This page forbidden for you"})
 		return
 	}
@@ -204,7 +215,7 @@ func (h *Handler) TaskUpdate(c *gin.Context) {
 // @Failure 404 {object} string "Task not found"
 // @Failure 500 {object} string "Server error"
 // @Security BearerAuth
-// @Router /task/{id} [delete]
+// @Router /admin/task/{id} [delete]
 func (h *Handler) TaskDelete(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
@@ -214,7 +225,7 @@ func (h *Handler) TaskDelete(c *gin.Context) {
 
 	role := claims.(jwt.MapClaims)["role"].(string)
 
-	if role == "user" {
+	if role != "admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "This page forbidden for you"})
 		return
 	}
