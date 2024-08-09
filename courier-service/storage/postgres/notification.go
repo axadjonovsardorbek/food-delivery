@@ -111,7 +111,7 @@ func (r *NotificationRepo) GetAll(req *cp.NotificationGetAllReq) (*cp.Notificati
 		args = append(args, req.IsRead)
 	}
 	if req.UserId != "" && req.UserId != "string" {
-		conditions = append(conditions, " user_id = $"+strconv.Itoa(len(args)+1)+")")
+		conditions = append(conditions, " user_id = $"+strconv.Itoa(len(args)+1))
 		args = append(args, req.UserId)
 	}
 
