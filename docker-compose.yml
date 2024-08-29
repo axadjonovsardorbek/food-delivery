@@ -20,9 +20,9 @@ services:
       PGDATA: /data/postgres
       POSTGRES_DB: delivery
     volumes:
-     - postgres_data:/var/lib/postgres/data
+     - food_postgres_data:/var/lib/postgres/data
     ports:
-      - "5454:5332"
+      - "5454:5432"
     networks:
       - delivery
     restart: unless-stopped
@@ -123,4 +123,4 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data: 
+  food_postgres_data: 
